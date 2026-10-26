@@ -5,7 +5,7 @@ import { SupportedLanguage, t } from '../services/i18n';
 import {
   Shield, Bell, ChevronDown, Plus, Upload, Globe, CheckCircle2,
   AlertTriangle, AlertCircle, RefreshCw, KeyRound, SearchCheck, Send,
-  Languages, Type
+  Languages, Type, Sparkles
 } from 'lucide-react';
 
 interface HeaderProps {
@@ -26,6 +26,7 @@ interface HeaderProps {
   onSelectFontSize?: (size: 'sm' | 'md' | 'lg') => void;
   onOpenTrackingPortal?: () => void;
   onOpenOutboxSimulator?: () => void;
+  onOpenGuidedDemo?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -45,7 +46,8 @@ export const Header: React.FC<HeaderProps> = ({
   fontSize = 'md',
   onSelectFontSize = () => {},
   onOpenTrackingPortal = () => {},
-  onOpenOutboxSimulator = () => {}
+  onOpenOutboxSimulator = () => {},
+  onOpenGuidedDemo = () => {}
 }) => {
   const [showPersonaMenu, setShowPersonaMenu] = useState(false);
   const [showNotificationMenu, setShowNotificationMenu] = useState(false);
@@ -333,6 +335,16 @@ export const Header: React.FC<HeaderProps> = ({
               </div>
             )}
           </div>
+
+          {/* Guided Demo Launcher */}
+          <button
+            onClick={onOpenGuidedDemo}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-amber-500/20 to-orange-500/20 hover:from-amber-500/30 hover:to-orange-500/30 text-amber-300 border border-amber-500/40 text-xs font-bold transition-all shadow-sm"
+            title="Launch Interactive 7-Step SIH 2024 Guided Demo Walkthrough"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+            <span className="hidden sm:inline">Guided Demo</span>
+          </button>
 
           {/* Quick Action: Bulk Import */}
           <button

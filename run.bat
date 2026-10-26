@@ -18,8 +18,9 @@ if not "%~1"=="" (
     if /i "%~1"=="dev" goto :action_dev
     if /i "%~1"=="status" goto :action_status
     if /i "%~1"=="ps" goto :action_status
+    if /i "%~1"=="health" goto :action_health
     echo [ERROR] Unknown option: %~1
-    echo Allowed options: start, up, stop, logs, rebuild, dev, status
+    echo Allowed options: start, up, stop, logs, rebuild, dev, status, health
     pause
     exit /b 1
 )
@@ -38,12 +39,13 @@ echo   [4] View Live Streaming Logs
 echo   [5] Rebuild and Restart All Services
 echo   [6] Start Frontend Only (Local Dev: npm run dev)
 echo   [7] View Service Status (docker compose ps)
-echo   [8] Open Web Application (http://localhost)
-echo   [9] Exit
+echo   [8] Run Air-Gapped Health ^& Verification Check
+echo   [9] Open Web Application (http://localhost)
+echo   [10] Exit
 echo.
 echo ========================================================================
 set "choice="
-set /p "choice=Select an option [1-9] (Default: 1): "
+set /p "choice=Select an option [1-10] (Default: 1): "
 if "!choice!"=="" set "choice=1"
 
 if "!choice!"=="1" goto :action_start_bg
@@ -53,11 +55,12 @@ if "!choice!"=="4" goto :action_logs
 if "!choice!"=="5" goto :action_rebuild
 if "!choice!"=="6" goto :action_dev
 if "!choice!"=="7" goto :action_status
-if "!choice!"=="8" (
+if "!choice!"=="8" goto :action_health
+if "!choice!"=="9" (
     start http://localhost
     goto :menu
 )
-if "!choice!"=="9" exit /b 0
+if "!choice!"=="10" exit /b 0
 
 echo Invalid selection. Please choose an option between 1 and 9.
 timeout /t 2 >nul
@@ -330,3 +333,23 @@ echo ========================================================================
 echo.
 pause
 exit /b 0
+
+
+:: -------------------------------------------------------------------------
+:: Action 8: Air-Gapped Health & Verification Check
+:: -------------------------------------------------------------------------
+:action_health
+echo.
+echo ========================================================================
+echo   Running Air-Gapped System Health ^& Verification Check...
+echo ========================================================================
+where python >nul 2>&1
+if not errorlevel 1 (
+    python scripts\health_check.py
+) else (
+    powershell -ExecutionPolicy Bypass -File scripts\verify_offline.ps1
+)
+echo.
+pause
+exit /b 0
+

@@ -17,6 +17,7 @@ import { OfficerLoginModal } from './components/OfficerLoginModal';
 import { ComplainantTrackingPortal } from './components/ComplainantTrackingPortal';
 import { SmsEmailSimulatorModal } from './components/SmsEmailSimulatorModal';
 import { InstitutionPortalView } from './components/InstitutionPortalView';
+import { GuidedDemoModal } from './components/GuidedDemoModal';
 import { api, onBackendStatusChange } from './services/api';
 import { INITIAL_PERSONAS } from './services/seedData';
 import { SupportedLanguage } from './services/i18n';
@@ -54,6 +55,7 @@ export const App: React.FC = () => {
   const [isAuditModalOpen, setIsAuditModalOpen] = useState(false);
   const [isTrackingPortalOpen, setIsTrackingPortalOpen] = useState(false);
   const [isSmsSimulatorOpen, setIsSmsSimulatorOpen] = useState(false);
+  const [isGuidedDemoOpen, setIsGuidedDemoOpen] = useState(false);
   const [isBackendOnline, setIsBackendOnline] = useState<boolean>(true);
 
   // Subscribe to backend connectivity events
@@ -157,6 +159,7 @@ export const App: React.FC = () => {
         onSelectFontSize={setFontSize}
         onOpenTrackingPortal={() => setIsTrackingPortalOpen(true)}
         onOpenOutboxSimulator={() => setIsSmsSimulatorOpen(true)}
+        onOpenGuidedDemo={() => setIsGuidedDemoOpen(true)}
       />
 
       {/* 2. Main Content Container */}
@@ -559,6 +562,22 @@ export const App: React.FC = () => {
       <SmsEmailSimulatorModal
         isOpen={isSmsSimulatorOpen}
         onClose={() => setIsSmsSimulatorOpen(false)}
+      />
+
+      {/* 8. Interactive Guided Demo Walkthrough (Item 22) */}
+      <GuidedDemoModal
+        isOpen={isGuidedDemoOpen}
+        onClose={() => setIsGuidedDemoOpen(false)}
+        onOpenOverlaps={() => setIsOverlapModalOpen(true)}
+        onOpenAudit={(caseId) => {
+          setAuditCaseId(caseId);
+          setIsAuditModalOpen(true);
+        }}
+        onOpenTracking={() => setIsTrackingPortalOpen(true)}
+        onOpenCaseDetail={(caseId) => {
+          const c = cases.find(x => x.id === caseId) || allCases.find(x => x.id === caseId);
+          if (c) setSelectedCaseDetail(c);
+        }}
       />
 
     </div>
