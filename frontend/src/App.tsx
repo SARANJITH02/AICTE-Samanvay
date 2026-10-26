@@ -13,10 +13,11 @@ import { RegionalRiskHeatmapCard } from './components/RegionalRiskHeatmapCard';
 import { RootCauseAnalyticsCard } from './components/RootCauseAnalyticsCard';
 import { SeasonalForecastChart } from './components/SeasonalForecastChart';
 import { ModelEvaluationCard } from './components/ModelEvaluationCard';
-import { api } from './services/api';
+import { OfficerLoginModal } from './components/OfficerLoginModal';
+import { api, onBackendStatusChange } from './services/api';
 import { INITIAL_PERSONAS } from './services/seedData';
 import { Complaint, CaseOverlap, StatsSummary, GraphData, Persona, OverlapStatus, ComplaintStatus, Institution } from './types';
-import { LayoutDashboard, Network, Scale, Lock, RefreshCw, AlertTriangle, X, Sparkles, BarChart3 } from 'lucide-react';
+import { LayoutDashboard, Network, Scale, Lock, RefreshCw, AlertTriangle, X, Sparkles, BarChart3, WifiOff } from 'lucide-react';
 
 export const App: React.FC = () => {
   const [currentPersona, setCurrentPersona] = useState<Persona>(INITIAL_PERSONAS[3]); // Default Apex Admin
@@ -41,9 +42,18 @@ export const App: React.FC = () => {
   const [isOverlapModalOpen, setIsOverlapModalOpen] = useState(false);
   const [isBulkImportOpen, setIsBulkImportOpen] = useState(false);
   const [isCreateCaseOpen, setIsCreateCaseOpen] = useState(false);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [selectedCaseDetail, setSelectedCaseDetail] = useState<Complaint | null>(null);
   const [auditCaseId, setAuditCaseId] = useState<string>('CMP-2026-PGRC-001');
   const [isAuditModalOpen, setIsAuditModalOpen] = useState(false);
+  const [isBackendOnline, setIsBackendOnline] = useState<boolean>(true);
+
+  // Subscribe to backend connectivity events
+  useEffect(() => {
+    return onBackendStatusChange((online) => {
+      setIsBackendOnline(online);
+    });
+  }, []);
 
   // Load all data
   const loadPlatformData = async () => {
@@ -122,6 +132,7 @@ export const App: React.FC = () => {
         overlapCount={pendingOverlaps.length}
         onOpenCreateCase={() => setIsCreateCaseOpen(true)}
         onOpenBulkImport={() => setIsBulkImportOpen(true)}
+        onOpenLoginModal={() => setIsLoginModalOpen(true)}
         onNavigateTab={(tab) => {
           if (tab === 'overlaps') setIsOverlapModalOpen(true);
           else setActiveTab(tab as any);
@@ -132,6 +143,29 @@ export const App: React.FC = () => {
       {/* 2. Main Content Container */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 lg:px-8 py-6">
         
+        {/* Backend Connectivity Status Alert Banner */}
+        {!isBackendOnline && (
+          <div className="mb-5 p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/40 text-amber-300 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs shadow-lg animate-fadeIn">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-lg bg-amber-500/20 flex items-center justify-center shrink-0">
+                <WifiOff className="w-4 h-4 text-amber-400" />
+              </div>
+              <div>
+                <span className="font-bold text-amber-200">BACKEND DISCONNECTED (OFFLINE CACHE ACTIVE):</span>
+                <p className="text-[11px] text-slate-300 mt-0.5">
+                  Spring Boot API service is unreachable. The application is operating in air-gapped cached state. Live mutations will queue locally until reconnection.
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={loadPlatformData}
+              className="px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs transition-colors shrink-0"
+            >
+              Retry Reconnection
+            </button>
+          </div>
+        )}
+
         {/* Navigation Tabs Bar */}
         <div className="flex flex-wrap items-center justify-between gap-3 mb-6 pb-2 border-b border-slate-800">
           <div className="flex items-center gap-1.5 bg-slate-900 p-1 rounded-xl border border-slate-800">
@@ -388,13 +422,35 @@ export const App: React.FC = () => {
       </main>
 
       {/* 3. Global Footer */}
-      <footer className="mt-auto border-t border-slate-800/80 bg-slate-950 py-4 px-4 lg:px-8 text-center text-xs text-slate-400">
+      <footer className="mt-auto border-t border-slate-800/80 bg-slate-950 py-4 px-4 lg:px-8 text-center text-xs text-slate-400 space-y-1">
         <p>
           AICTE Samanvay Platform &bull; Smart India Hackathon Problem Statement 26264 &bull; 100% Air-Gapped High-Assurance Architecture
+        </p>
+        <p className="text-[11px] text-slate-500">
+          Air-Gapped Mode &bull; Seed Data: Synthetic AICTE Regulatory Benchmark (db/seed.sql) &bull; Designed to support evidentiary verification pursuant to Section 63 BSA, 2023
         </p>
       </footer>
 
       {/* MODALS */}
+      {/* 0. Enterprise Officer Login Modal */}
+      <OfficerLoginModal
+        isOpen={isLoginModalOpen}
+        onClose={() => setIsLoginModalOpen(false)}
+        onLoginSuccess={(u) => {
+          handleSelectPersona({
+            id: u.username,
+            name: u.fullName || u.username,
+            role: u.role,
+            bureau: u.bureau,
+            badgeColor: 'bg-blue-500/10 text-blue-300 border-blue-500/30',
+            avatarText: (u.username || 'OF').slice(0, 2).toUpperCase(),
+            defaultRegion: u.region || 'All Regions',
+            description: u.role
+          });
+          loadPlatformData();
+        }}
+      />
+
       {/* 1. Overlap Split Console */}
       <OverlapModal
         overlaps={overlaps}

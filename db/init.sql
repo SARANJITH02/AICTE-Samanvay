@@ -117,7 +117,7 @@ CREATE TABLE case_overlaps (
 CREATE INDEX idx_case_overlaps_inst ON case_overlaps(institution_pid);
 CREATE INDEX idx_case_overlaps_status ON case_overlaps(status);
 
--- 6. AUDIT LOGS (Cryptographic Hash Chain)
+-- 6. AUDIT LOGS (Cryptographic Hash Chain with Ed25519 Signatures)
 CREATE TABLE audit_logs (
     id BIGSERIAL PRIMARY KEY,
     case_id VARCHAR(64) NOT NULL REFERENCES complaints(id) ON DELETE CASCADE,
@@ -128,11 +128,32 @@ CREATE TABLE audit_logs (
     payload_snapshot JSONB DEFAULT '{}'::jsonb,
     prev_hash VARCHAR(64) NOT NULL,
     current_hash VARCHAR(64) NOT NULL,
+    officer_signature VARCHAR(256),
+    officer_public_key VARCHAR(256),
     timestamp TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT uq_audit_case_seq UNIQUE (case_id, sequence_num)
 );
 
 CREATE INDEX idx_audit_logs_case ON audit_logs(case_id);
+
+-- 6B. AUDIT CHECKPOINTS (Merkle Root Anchoring & National Witness Signatures)
+CREATE TABLE audit_checkpoints (
+    id BIGSERIAL PRIMARY KEY,
+    checkpoint_id VARCHAR(64) NOT NULL UNIQUE,
+    checkpoint_num BIGINT NOT NULL,
+    case_id VARCHAR(64) NOT NULL,
+    from_seq BIGINT NOT NULL,
+    to_seq BIGINT NOT NULL,
+    total_blocks INT NOT NULL,
+    merkle_root VARCHAR(64) NOT NULL,
+    chain_head_hash VARCHAR(64) NOT NULL,
+    witness_signature VARCHAR(256),
+    witness_public_key VARCHAR(256),
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_checkpoint_case ON audit_checkpoints(case_id);
+CREATE INDEX idx_checkpoint_num ON audit_checkpoints(checkpoint_num);
 
 -- 7. NOVELTY: COMPLAINT-SPLITTING SUB-TASKS (case_sub_tasks)
 CREATE TABLE case_sub_tasks (

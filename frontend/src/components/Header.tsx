@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Persona } from '../types';
 import { INITIAL_PERSONAS } from '../services/seedData';
-import { Shield, Bell, ChevronDown, Plus, Upload, Globe, CheckCircle2, AlertTriangle, AlertCircle, RefreshCw } from 'lucide-react';
+import { Shield, Bell, ChevronDown, Plus, Upload, Globe, CheckCircle2, AlertTriangle, AlertCircle, RefreshCw, KeyRound } from 'lucide-react';
 
 interface HeaderProps {
   currentPersona: Persona;
@@ -12,6 +12,7 @@ interface HeaderProps {
   overlapCount: number;
   onOpenCreateCase: () => void;
   onOpenBulkImport: () => void;
+  onOpenLoginModal: () => void;
   onNavigateTab: (tab: string) => void;
   onRefreshData: () => void;
 }
@@ -25,6 +26,7 @@ export const Header: React.FC<HeaderProps> = ({
   overlapCount,
   onOpenCreateCase,
   onOpenBulkImport,
+  onOpenLoginModal,
   onNavigateTab,
   onRefreshData
 }) => {
@@ -99,6 +101,16 @@ export const Header: React.FC<HeaderProps> = ({
             </select>
           </div>
 
+          {/* Officer Enterprise Login Trigger */}
+          <button
+            onClick={onOpenLoginModal}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-300 border border-blue-500/30 text-xs font-semibold transition-all shadow-sm"
+            title="Real enterprise login using BCrypt credentials, short-lived JWT, and RFC 6238 TOTP MFA"
+          >
+            <KeyRound className="w-3.5 h-3.5 text-blue-400" />
+            <span className="hidden sm:inline">Officer Login (MFA)</span>
+          </button>
+
           {/* Persona Switcher Dropdown */}
           <div className="relative">
             <button
@@ -110,6 +122,9 @@ export const Header: React.FC<HeaderProps> = ({
               <span className="text-white font-semibold">{currentPersona.name.split(' ')[0]}</span>
               <span className={`text-[10px] px-1.5 py-0.2 rounded border ${currentPersona.badgeColor}`}>
                 {currentPersona.bureau}
+              </span>
+              <span className="text-[9px] px-1 py-0.2 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 font-bold hidden md:inline">
+                DEMO
               </span>
               <ChevronDown className="w-3.5 h-3.5 text-slate-400 ml-0.5" />
             </button>

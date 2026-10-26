@@ -15,24 +15,45 @@ import java.util.Date;
 public class JwtTokenProvider {
 
     private final SecretKey key;
-    private final long expirationMs;
+    private final long accessTokenExpirationMs;
+    private final long refreshTokenExpirationMs;
 
     public JwtTokenProvider(
             @Value("${app.jwt.secret:404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970}") String secret,
-            @Value("${app.jwt.expiration-ms:86400000}") long expirationMs) {
+            @Value("${app.jwt.access-expiration-ms:900000}") long accessTokenExpirationMs, // 15 mins default
+            @Value("${app.jwt.refresh-expiration-ms:604800000}") long refreshTokenExpirationMs) { // 7 days default
         this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
-        this.expirationMs = expirationMs;
+        this.accessTokenExpirationMs = accessTokenExpirationMs;
+        this.refreshTokenExpirationMs = refreshTokenExpirationMs;
     }
 
     public String generateToken(String username, String role, String bureau, String region) {
+        return generateAccessToken(username, role, bureau, region);
+    }
+
+    public String generateAccessToken(String username, String role, String bureau, String region) {
         Date now = new Date();
-        Date expiryDate = new Date(now.getTime() + expirationMs);
+        Date expiryDate = new Date(now.getTime() + accessTokenExpirationMs);
 
         return Jwts.builder()
                 .subject(username)
+                .claim("token_type", "ACCESS")
                 .claim("role", role)
                 .claim("bureau", bureau)
                 .claim("region", region)
+                .issuedAt(now)
+                .expiration(expiryDate)
+                .signWith(key)
+                .compact();
+    }
+
+    public String generateRefreshToken(String username) {
+        Date now = new Date();
+        Date expiryDate = new Date(now.getTime() + refreshTokenExpirationMs);
+
+        return Jwts.builder()
+                .subject(username)
+                .claim("token_type", "REFRESH")
                 .issuedAt(now)
                 .expiration(expiryDate)
                 .signWith(key)
@@ -64,5 +85,19 @@ public class JwtTokenProvider {
             log.error("[JWT] Invalid token: {}", e.getMessage());
             return false;
         }
+    }
+
+    public boolean validateRefreshToken(String token) {
+        try {
+            Claims claims = Jwts.parser().verifyWith(key).build().parseSignedClaims(token).getPayload();
+            return "REFRESH".equals(claims.get("token_type"));
+        } catch (JwtException | IllegalArgumentException e) {
+            log.error("[JWT] Invalid refresh token: {}", e.getMessage());
+            return false;
+        }
+    }
+
+    public long getAccessTokenExpirationMs() {
+        return accessTokenExpirationMs;
     }
 }

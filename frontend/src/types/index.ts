@@ -16,6 +16,7 @@ export interface Persona {
   defaultRegion: string;
   badgeColor: string;
   avatarText: string;
+  description?: string;
 }
 
 export interface CiiBreakdown {
@@ -173,6 +174,8 @@ export interface AuditLog {
   payloadSnapshot: string;
   prevHash: string;
   currentHash: string;
+  officerSignature?: string;
+  officerPublicKey?: string;
   timestamp: string;
 }
 
@@ -184,6 +187,10 @@ export interface BlockVerificationDetail {
   expectedPrevHash: string;
   recordedCurrentHash: string;
   recomputedCurrentHash: string;
+  officerSignature?: string;
+  officerPublicKey?: string;
+  signatureValid?: boolean;
+  checkpointStatus?: string;
   blockValid: boolean;
   timestamp: string;
 }
@@ -197,6 +204,10 @@ export interface AuditVerificationResult {
   totalBlocks: number;
   genesisHash: string;
   latestHash: string;
+  checkpointCount?: number;
+  latestCheckpointId?: string | null;
+  latestMerkleRoot?: string | null;
+  witnessSignatureValid?: boolean;
   verificationDetails: BlockVerificationDetail[];
   tamperAlertMessage?: string | null;
 }

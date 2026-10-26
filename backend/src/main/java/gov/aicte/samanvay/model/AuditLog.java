@@ -45,6 +45,12 @@ public class AuditLog {
     @Column(name = "current_hash", length = 64, nullable = false)
     private String currentHash;
 
+    @Column(name = "officer_signature", length = 256)
+    private String officerSignature;
+
+    @Column(name = "officer_public_key", length = 256)
+    private String officerPublicKey;
+
     @Column(name = "timestamp", nullable = false)
     private OffsetDateTime timestamp;
 

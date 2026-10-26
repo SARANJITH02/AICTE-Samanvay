@@ -29,6 +29,18 @@ public class AuditVerificationDto {
     
     @JsonProperty("latest_hash")
     private String latestHash;
+
+    @JsonProperty("checkpoint_count")
+    private int checkpointCount;
+
+    @JsonProperty("latest_checkpoint_id")
+    private String latestCheckpointId;
+
+    @JsonProperty("latest_merkle_root")
+    private String latestMerkleRoot;
+
+    @JsonProperty("witness_signature_valid")
+    private boolean witnessSignatureValid;
     
     @JsonProperty("verification_details")
     private List<BlockVerificationDetail> verificationDetails;
@@ -86,6 +98,18 @@ public class AuditVerificationDto {
         
         @JsonProperty("recomputed_current_hash")
         private String recomputedCurrentHash;
+
+        @JsonProperty("officer_signature")
+        private String officerSignature;
+
+        @JsonProperty("officer_public_key")
+        private String officerPublicKey;
+
+        @JsonProperty("signature_valid")
+        private boolean signatureValid;
+
+        @JsonProperty("checkpoint_status")
+        private String checkpointStatus;
         
         @JsonProperty("block_valid")
         private boolean blockValid;
@@ -97,6 +121,12 @@ public class AuditVerificationDto {
 
         @JsonProperty("blockValid")
         public boolean getBlockValidCamel() { return blockValid; }
+
+        @JsonProperty("signatureValid")
+        public boolean getSignatureValidCamel() { return signatureValid; }
+
+        @JsonProperty("checkpointStatus")
+        public String getCheckpointStatusCamel() { return checkpointStatus; }
 
         @JsonProperty("recordedPrevHash")
         public String getRecordedPrevHashCamel() { return recordedPrevHash; }
@@ -111,4 +141,3 @@ public class AuditVerificationDto {
         public String getRecomputedCurrentHashCamel() { return recomputedCurrentHash; }
     }
 }
-

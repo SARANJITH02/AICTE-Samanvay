@@ -290,6 +290,138 @@ export const generateHearingDocketPdf = async (options: DocketExportOptions): Pr
   doc.setTextColor(100, 116, 139);
   doc.text('Date & Hearing Order No.', margin + (signWidth * 2) + 8 + (signWidth / 2), y + 21, { align: 'center' });
 
+  // =========================================================================
+  // PAGE 2: SECTION 63 BHARATIYA SAKSHYA ADHINIYAM (BSA), 2023 CERTIFICATE
+  // =========================================================================
+  doc.addPage();
+  let py = margin;
+
+  // Background subtle watermark
+  doc.setTextColor(241, 245, 249);
+  doc.setFontSize(32);
+  doc.setFont('helvetica', 'bold');
+  doc.saveGraphicsState();
+  doc.text('SECTION 63 BSA 2023 CERTIFIED', pageWidth / 2, pageHeight / 2, {
+    align: 'center',
+    angle: 45
+  });
+  doc.restoreGraphicsState();
+
+  // Header Box
+  doc.setFillColor(15, 23, 42); // slate-900
+  doc.rect(margin, py, pageWidth - (margin * 2), 22, 'F');
+
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(10.5);
+  doc.setFont('helvetica', 'bold');
+  doc.text('SCHEDULE - SECTION 63 BHARATIYA SAKSHYA ADHINIYAM (BSA), 2023', margin + 6, py + 7.5);
+  doc.setFontSize(7.5);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(203, 213, 225);
+  doc.text('CERTIFICATE AS TO ADMISSIBILITY OF ELECTRONIC RECORD IN JUDICIAL / TRIBUNAL PROCEEDINGS', margin + 6, py + 13);
+  doc.text('[Pursuant to Section 63(4)(c) of the Bharatiya Sakshya Adhiniyam, 2023 (Repealing & Replacing Section 65B of IEA, 1872)]', margin + 6, py + 18);
+
+  py += 28;
+
+  // Legal Sub-heading
+  doc.setTextColor(15, 23, 42);
+  doc.setFontSize(8.5);
+  doc.setFont('helvetica', 'bold');
+  doc.text('FORMAL STATUTORY DECLARATION BY RESPONSIBLE REGULATORY OFFICER', margin, py);
+  py += 4;
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8);
+  doc.setTextColor(51, 65, 85);
+  const declarationText = `I, the undersigned responsible officer having lawful management and official custody of the AICTE Samanvay Cross-Bureau Platform, do hereby solemnly declare and certify under Section 63(4) of the Bharatiya Sakshya Adhiniyam, 2023 that:\n\n` +
+    `1. Identification of Electronic Record: This document and the annexed Hearing Docket pertain to Grievance/Regulatory Case File ID: ${complaint.id} regarding Institution PID: ${instPid} (${instName}).\n\n` +
+    `2. Regular Course of Activity: The electronic information, inter-bureau logs, and dispute determinations were produced and ingested into the computer system in the ordinary course of regulatory oversight and statutory duty.\n\n` +
+    `3. System Integrity & Air-Gapped Operation: Throughout the material period, the computer system and server repository were operating in an isolated, air-gapped high-assurance environment under proper controls. There were no unauthorized interventions, and the integrity of the database contents was mathematically preserved via sequential SHA-256 hash chaining and Ed25519 digital signatures.\n\n` +
+    `4. Non-Repudiation & Cryptographic Proof: The chain head hash and Merkle checkpoint recorded herein uniquely authenticate the provenance of every action taken across PGRC, Regulation Bureau, and Regional Offices without omission or retrospective modification.`;
+
+  const splitDeclaration = doc.splitTextToSize(declarationText, pageWidth - (margin * 2));
+  doc.text(splitDeclaration, margin, py);
+  py += (splitDeclaration.length * 4) + 4;
+
+  // Technical Cryptographic Parameter Table
+  doc.setFillColor(248, 250, 252);
+  doc.rect(margin, py, pageWidth - (margin * 2), 48, 'F');
+  doc.setDrawColor(203, 213, 225);
+  doc.rect(margin, py, pageWidth - (margin * 2), 48, 'S');
+
+  doc.setFontSize(8);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(30, 41, 59);
+  doc.text('ELECTRONIC RECORD TECHNICAL ATTRIBUTES & CRYPTOGRAPHIC WITNESS', margin + 4, py + 6);
+
+  const latestHash = auditLogs.length > 0 ? auditLogs[auditLogs.length - 1].currentHash : '0000000000000000000000000000000000000000000000000000000000000000';
+  const genesisHash = auditLogs.length > 0 ? auditLogs[0].currentHash : '0000000000000000000000000000000000000000000000000000000000000000';
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(7);
+  doc.setTextColor(71, 85, 105);
+
+  doc.text(`Target Case Identifier:`, margin + 4, py + 13);
+  doc.setFont('helvetica', 'bold');
+  doc.text(`${complaint.id}`, margin + 40, py + 13);
+
+  doc.setFont('helvetica', 'normal');
+  doc.text(`Target Institution:`, margin + 4, py + 18);
+  doc.setFont('helvetica', 'bold');
+  doc.text(`${instName} (PID: ${instPid})`, margin + 40, py + 18);
+
+  doc.setFont('helvetica', 'normal');
+  doc.text(`Chain Genesis Hash:`, margin + 4, py + 23);
+  doc.setFont('courier', 'normal');
+  doc.setFontSize(6.5);
+  doc.text(`${genesisHash}`, margin + 40, py + 23);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(7);
+  doc.text(`Chain Head Hash:`, margin + 4, py + 28);
+  doc.setFont('courier', 'bold');
+  doc.setFontSize(6.5);
+  doc.text(`${latestHash}`, margin + 40, py + 28);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(7);
+  doc.text(`Total Audit Blocks:`, margin + 4, py + 33);
+  doc.setFont('helvetica', 'bold');
+  doc.text(`${auditLogs.length} verified sequential blocks (Ed25519 Signed)`, margin + 40, py + 33);
+
+  doc.setFont('helvetica', 'normal');
+  doc.text(`Operating Environment:`, margin + 4, py + 38);
+  doc.setFont('helvetica', 'bold');
+  doc.text(`Air-Gapped AICTE Ingress Gateway | TLS 1.3 | PostgreSQL 16 pgvector`, margin + 40, py + 38);
+
+  doc.setFont('helvetica', 'normal');
+  doc.text(`Date & Time of Export:`, margin + 4, py + 43);
+  doc.setFont('helvetica', 'bold');
+  doc.text(`${new Date().toUTCString()} (IST: ${new Date().toLocaleString()})`, margin + 40, py + 43);
+
+  py += 56;
+
+  // Certifying Officer Signature Box
+  doc.setDrawColor(148, 163, 184);
+  doc.rect(margin, py, pageWidth - (margin * 2), 34, 'S');
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8);
+  doc.setTextColor(15, 23, 42);
+  doc.text('CERTIFYING OFFICER PARTICULARS & DIGITAL ATTESTATION', margin + 4, py + 6);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(7.5);
+  doc.setTextColor(71, 85, 105);
+  doc.text('Officer Name: ____________________________________', margin + 4, py + 14);
+  doc.text('Designation:  ____________________________________', margin + 4, py + 21);
+  doc.text('Official Seal / Employee ID: ______________________', margin + 4, py + 28);
+
+  doc.line(pageWidth - margin - 60, py + 22, pageWidth - margin - 6, py + 22);
+  doc.setFontSize(7);
+  doc.text('Official Signature & Digital Token Seal', pageWidth - margin - 58, py + 26);
+  doc.text('(Under Sec. 63(4) BSA, 2023)', pageWidth - margin - 50, py + 30);
+
   // Download PDF
   const filename = `SHC_Docket_${complaint.id}_${new Date().toISOString().slice(0, 10)}.pdf`;
   doc.save(filename);

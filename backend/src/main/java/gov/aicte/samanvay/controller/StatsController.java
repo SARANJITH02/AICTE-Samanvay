@@ -66,12 +66,12 @@ public class StatsController {
     }
 
     @org.springframework.web.bind.annotation.PostMapping("/cii/appeal")
-    public ResponseEntity<Map<String, Object>> submitCiiAppeal(@org.springframework.web.bind.annotation.RequestBody Map<String, String> body) {
+    public ResponseEntity<?> submitCiiAppeal(@org.springframework.web.bind.annotation.RequestBody Map<String, String> body) {
         String pid = body.get("institutionPid");
         String remarks = body.getOrDefault("appealRemarks", "Formal dispute against calculated penalties.");
         String officerId = body.getOrDefault("officerId", "INSTITUTION_NODAL_OFFICER");
 
-        return institutionRepository.findById(pid).map(inst -> {
+        return institutionRepository.findById(pid).<ResponseEntity<?>>map(inst -> {
             inst.setCiiAppealStatus("UNDER_REVIEW");
             inst.setCiiAppealRemarks(remarks);
             institutionRepository.save(inst);

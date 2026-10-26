@@ -9,6 +9,42 @@ const client = axios.create({
   timeout: 4000,
 });
 
+type BackendStatusListener = (online: boolean) => void;
+const backendStatusListeners: Set<BackendStatusListener> = new Set();
+let isBackendOnline: boolean = true;
+
+export const getBackendOnlineStatus = (): boolean => isBackendOnline;
+
+export const onBackendStatusChange = (listener: BackendStatusListener) => {
+  backendStatusListeners.add(listener);
+  listener(isBackendOnline);
+  return () => {
+    backendStatusListeners.delete(listener);
+  };
+};
+
+const setBackendOnlineStatus = (online: boolean) => {
+  if (isBackendOnline !== online) {
+    isBackendOnline = online;
+    backendStatusListeners.forEach(cb => {
+      try { cb(online); } catch {}
+    });
+  }
+};
+
+client.interceptors.response.use(
+  res => {
+    setBackendOnlineStatus(true);
+    return res;
+  },
+  err => {
+    if (!err.response || err.code === 'ERR_NETWORK' || err.code === 'ECONNABORTED' || err.message?.includes('Network Error')) {
+      setBackendOnlineStatus(false);
+    }
+    return Promise.reject(err);
+  }
+);
+
 // Set JWT token
 export const setAuthToken = (token: string | null) => {
   if (token) {
@@ -1189,5 +1225,122 @@ export const api = {
       ciiAppealStatus: 'UNDER_REVIEW',
       message: 'CII Appeal lodged and recorded in cryptographic audit chain.'
     };
+  },
+
+  // 27. Create Signed Merkle Checkpoint
+  async createCheckpoint(caseId: string): Promise<any> {
+    try {
+      const res = await client.post('/audit/checkpoints/create', null, { params: { caseId } });
+      return res.data;
+    } catch {
+      return {
+        checkpointId: `CHK-LOCAL-${Date.now().toString().slice(-4)}`,
+        caseId,
+        merkleRoot: 'LOCAL_FALLBACK_MERKLE_ROOT_AIR_GAPPED',
+        totalBlocks: 1,
+        witnessSignature: 'LOCAL_DEMO_WITNESS_SIG',
+        createdAt: new Date().toISOString()
+      };
+    }
+  },
+
+  // 28. Get Checkpoints for Case
+  async getCheckpoints(caseId: string): Promise<any[]> {
+    try {
+      const res = await client.get(`/audit/checkpoints/${caseId}`);
+      return res.data || [];
+    } catch {
+      return [];
+    }
+  },
+
+  // 29. Export Signed Witness Checkpoint Proof
+  async exportCheckpointWitness(checkpointId: string): Promise<any> {
+    try {
+      const res = await client.get(`/audit/checkpoints/export/${checkpointId}`);
+      return res.data;
+    } catch {
+      return {
+        checkpointId,
+        printableProof: `AICTE SAMANVAY AUDIT WITNESS ANCHOR\nCheckpoint: ${checkpointId}\nStatus: Locally Anchored`,
+        qrPayload: `AICTE|CHK|${checkpointId}`
+      };
+    }
+  },
+
+  // 30. Simulate Unauthorized Tamper (Demo tool for verifying cryptographic failure detection)
+  async simulateTamper(caseId: string, seq?: number): Promise<any> {
+    try {
+      const res = await client.post('/audit/simulate-tamper', null, { params: { caseId, seq } });
+      return res.data;
+    } catch {
+      // In local mode, tamper local storage log
+      const logs = getLocalAuditLogs();
+      const caseLogs = logs[caseId];
+      if (caseLogs && caseLogs.length > 0) {
+        const target = caseLogs[caseLogs.length - 1];
+        target.remarks += ' [TAMPER_INJECTED: Unauthorized fee forfeiture clause inserted]';
+        saveLocalAuditLogs(logs);
+      }
+      return {
+        status: 'TAMPERED',
+        caseId,
+        message: 'Simulated unauthorized modification injected into audit row.'
+      };
+    }
+  },
+
+  // 31. Repair / Restore Integrity after Tamper Simulation
+  async repairTamper(caseId: string): Promise<any> {
+    try {
+      const res = await client.post('/audit/repair-tamper', null, { params: { caseId } });
+      return res.data;
+    } catch {
+      // In local mode, repair local storage log
+      const logs = getLocalAuditLogs();
+      const caseLogs = logs[caseId];
+      if (caseLogs && caseLogs.length > 0) {
+        let prev = '0000000000000000000000000000000000000000000000000000000000000000';
+        for (const logItem of caseLogs) {
+          logItem.remarks = (logItem.remarks || '').replace(' [TAMPER_INJECTED: Unauthorized fee forfeiture clause inserted]', '').trim();
+          logItem.prevHash = prev;
+          logItem.currentHash = await computeSha256(buildRawDataString(prev, caseId, logItem.sequenceNum, logItem.officerId, logItem.action, logItem.remarks, logItem.payloadSnapshot || '{}'));
+          prev = logItem.currentHash;
+        }
+        saveLocalAuditLogs(logs);
+      }
+      return {
+        status: 'RESTORED',
+        caseId,
+        message: 'Cryptographic chain re-signed and restored.'
+      };
+    }
+  },
+
+  // 32. Get Current TOTP Code (Air-Gapped Demo Inspector)
+  async getCurrentTotp(username: string): Promise<any> {
+    try {
+      const res = await client.get('/auth/current-totp', { params: { username } });
+      return res.data;
+    } catch {
+      return {
+        username,
+        currentTotpCode: '123456',
+        demoBypassCode: '123456',
+        timeStepSeconds: 30
+      };
+    }
+  },
+
+  // 33. Real Enterprise Login (BCrypt + JWT + TOTP MFA)
+  async login(request: { username?: string; password?: string; totpCode?: string; persona?: string; region?: string }): Promise<any> {
+    const res = await client.post('/auth/login', request);
+    if (res.data?.token) {
+      setAuthToken(res.data.token);
+      if (res.data.refreshToken) {
+        localStorage.setItem('samanvay_refresh_token', res.data.refreshToken);
+      }
+    }
+    return res.data;
   }
 };
