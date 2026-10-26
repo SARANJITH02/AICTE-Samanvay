@@ -28,14 +28,18 @@ public class JwtTokenProvider {
     }
 
     public String generateToken(String username, String role, String bureau, String region) {
-        return generateAccessToken(username, role, bureau, region);
+        return generateAccessToken(username, role, bureau, region, null);
     }
 
     public String generateAccessToken(String username, String role, String bureau, String region) {
+        return generateAccessToken(username, role, bureau, region, null);
+    }
+
+    public String generateAccessToken(String username, String role, String bureau, String region, String institutionPid) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + accessTokenExpirationMs);
 
-        return Jwts.builder()
+        var builder = Jwts.builder()
                 .subject(username)
                 .claim("token_type", "ACCESS")
                 .claim("role", role)
@@ -43,8 +47,13 @@ public class JwtTokenProvider {
                 .claim("region", region)
                 .issuedAt(now)
                 .expiration(expiryDate)
-                .signWith(key)
-                .compact();
+                .signWith(key);
+
+        if (institutionPid != null && !institutionPid.isBlank()) {
+            builder.claim("institutionPid", institutionPid);
+        }
+
+        return builder.compact();
     }
 
     public String generateRefreshToken(String username) {

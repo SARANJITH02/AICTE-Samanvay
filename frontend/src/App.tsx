@@ -14,15 +14,21 @@ import { RootCauseAnalyticsCard } from './components/RootCauseAnalyticsCard';
 import { SeasonalForecastChart } from './components/SeasonalForecastChart';
 import { ModelEvaluationCard } from './components/ModelEvaluationCard';
 import { OfficerLoginModal } from './components/OfficerLoginModal';
+import { ComplainantTrackingPortal } from './components/ComplainantTrackingPortal';
+import { SmsEmailSimulatorModal } from './components/SmsEmailSimulatorModal';
+import { InstitutionPortalView } from './components/InstitutionPortalView';
 import { api, onBackendStatusChange } from './services/api';
 import { INITIAL_PERSONAS } from './services/seedData';
+import { SupportedLanguage } from './services/i18n';
 import { Complaint, CaseOverlap, StatsSummary, GraphData, Persona, OverlapStatus, ComplaintStatus, Institution } from './types';
-import { LayoutDashboard, Network, Scale, Lock, RefreshCw, AlertTriangle, X, Sparkles, BarChart3, WifiOff } from 'lucide-react';
+import { LayoutDashboard, Network, Scale, Lock, RefreshCw, AlertTriangle, X, Sparkles, BarChart3, WifiOff, Building } from 'lucide-react';
 
 export const App: React.FC = () => {
   const [currentPersona, setCurrentPersona] = useState<Persona>(INITIAL_PERSONAS[3]); // Default Apex Admin
   const [selectedRegion, setSelectedRegion] = useState<string>('All Regions');
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'graph' | 'overlaps' | 'audit' | 'analytics'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'graph' | 'overlaps' | 'audit' | 'analytics' | 'institution'>('dashboard');
+  const [language, setLanguage] = useState<SupportedLanguage>('en');
+  const [fontSize, setFontSize] = useState<'sm' | 'md' | 'lg'>('md');
 
   // Core Data State
   const [cases, setCases] = useState<Complaint[]>([]);
@@ -46,6 +52,8 @@ export const App: React.FC = () => {
   const [selectedCaseDetail, setSelectedCaseDetail] = useState<Complaint | null>(null);
   const [auditCaseId, setAuditCaseId] = useState<string>('CMP-2026-PGRC-001');
   const [isAuditModalOpen, setIsAuditModalOpen] = useState(false);
+  const [isTrackingPortalOpen, setIsTrackingPortalOpen] = useState(false);
+  const [isSmsSimulatorOpen, setIsSmsSimulatorOpen] = useState(false);
   const [isBackendOnline, setIsBackendOnline] = useState<boolean>(true);
 
   // Subscribe to backend connectivity events
@@ -95,6 +103,11 @@ export const App: React.FC = () => {
   const handleSelectPersona = (p: Persona) => {
     setCurrentPersona(p);
     setSelectedRegion(p.defaultRegion || 'All Regions');
+    if (p.role === 'ROLE_INSTITUTION_NODAL') {
+      setActiveTab('institution');
+    } else if (activeTab === 'institution') {
+      setActiveTab('dashboard');
+    }
   };
 
   // Overlap resolution handler
@@ -120,7 +133,7 @@ export const App: React.FC = () => {
   const breachedCount = stats?.breachedSla || 0;
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans">
+    <div className={`min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans ${fontSize === 'sm' ? 'text-xs' : fontSize === 'lg' ? 'text-base' : 'text-sm'}`}>
       
       {/* 1. Header / Persona Switcher / Region / Global Actions */}
       <Header
@@ -138,6 +151,12 @@ export const App: React.FC = () => {
           else setActiveTab(tab as any);
         }}
         onRefreshData={loadPlatformData}
+        language={language}
+        onSelectLanguage={setLanguage}
+        fontSize={fontSize}
+        onSelectFontSize={setFontSize}
+        onOpenTrackingPortal={() => setIsTrackingPortalOpen(true)}
+        onOpenOutboxSimulator={() => setIsSmsSimulatorOpen(true)}
       />
 
       {/* 2. Main Content Container */}
@@ -210,6 +229,14 @@ export const App: React.FC = () => {
             >
               <Sparkles className="w-3.5 h-3.5" />
               <span>AI Analytics &amp; Forecasts</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('institution')}
+              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all ${activeTab === 'institution' ? 'bg-amber-500 text-slate-950 shadow-md shadow-amber-500/20' : 'text-slate-400 hover:text-white'}`}
+            >
+              <Building className="w-3.5 h-3.5" />
+              <span>Institution Portal</span>
             </button>
           </div>
 
@@ -419,6 +446,14 @@ export const App: React.FC = () => {
           </div>
         )}
 
+        {/* TAB 6: Institution Response Portal (Item 20) */}
+        {activeTab === 'institution' && (
+          <InstitutionPortalView
+            institutionPid="INST-SOU-001"
+            institutionName="Madras Institute of Technology"
+          />
+        )}
+
       </main>
 
       {/* 3. Global Footer */}
@@ -513,6 +548,18 @@ export const App: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* 6. Citizen Grievance Tracking Portal (Item 13) */}
+      <ComplainantTrackingPortal
+        isOpen={isTrackingPortalOpen}
+        onClose={() => setIsTrackingPortalOpen(false)}
+      />
+
+      {/* 7. Air-Gapped Outbox SMS / Email Simulator (Item 19) */}
+      <SmsEmailSimulatorModal
+        isOpen={isSmsSimulatorOpen}
+        onClose={() => setIsSmsSimulatorOpen(false)}
+      />
 
     </div>
   );

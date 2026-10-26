@@ -34,6 +34,10 @@ public class Complaint {
     @Column(name = "complainant_type", length = 64, nullable = false)
     private String complainantType;
 
+    @Column(name = "complainant_mobile", length = 32)
+    @Builder.Default
+    private String complainantMobile = "9876543210";
+
     @Column(name = "category", length = 64, nullable = false)
     private String category;
 

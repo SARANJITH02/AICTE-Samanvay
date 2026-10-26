@@ -25,6 +25,8 @@ public class AuthResponseDto {
     private String role;
     private String bureau;
     private String region;
+    @JsonProperty("institution_pid")
+    private String institutionPid;
 
     @JsonProperty("expires_in_ms")
     private long expiresInMs;

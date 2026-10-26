@@ -48,6 +48,7 @@ CREATE TABLE complaints (
     institution_pid VARCHAR(64) NOT NULL REFERENCES institutions(pid) ON DELETE CASCADE,
     source_bureau VARCHAR(64) NOT NULL, -- 'PGRC', 'REGULATION_BUREAU', 'REGIONAL_OFFICE'
     complainant_type VARCHAR(64) NOT NULL, -- 'Student', 'Faculty', 'Parent', 'Public'
+    complainant_mobile VARCHAR(32) DEFAULT '9876543210',
     category VARCHAR(64) NOT NULL, -- 'Fee Dispute', 'Document Withholding', 'Infrastructure', 'Admission Anomaly'
     subject VARCHAR(500) NOT NULL,
     complaint_text TEXT NOT NULL,
@@ -239,3 +240,45 @@ CREATE TABLE IF NOT EXISTS inter_bureau_notes (
 );
 
 CREATE INDEX idx_notes_overlap ON inter_bureau_notes(overlap_id);
+
+-- 12. ENTERPRISE USERS TABLE (BCrypt + TOTP + RBAC + Institution Scope)
+CREATE TABLE IF NOT EXISTS users (
+    id BIGSERIAL PRIMARY KEY,
+    username VARCHAR(64) NOT NULL UNIQUE,
+    password_hash VARCHAR(128) NOT NULL,
+    full_name VARCHAR(128) NOT NULL,
+    role VARCHAR(64) NOT NULL,
+    bureau VARCHAR(64) NOT NULL,
+    region VARCHAR(64) NOT NULL,
+    institution_pid VARCHAR(64),
+    totp_secret VARCHAR(64),
+    totp_enabled BOOLEAN NOT NULL DEFAULT TRUE,
+    failed_attempts INT NOT NULL DEFAULT 0,
+    locked_until TIMESTAMP WITH TIME ZONE,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
+CREATE INDEX IF NOT EXISTS idx_users_role ON users(role);
+CREATE INDEX IF NOT EXISTS idx_users_region ON users(region);
+
+-- 13. AIR-GAPPED NOTIFICATION OUTBOX TABLE (SMS / Email / In-App Simulator)
+CREATE TABLE IF NOT EXISTS notification_outbox (
+    id BIGSERIAL PRIMARY KEY,
+    recipient VARCHAR(128) NOT NULL,
+    type VARCHAR(32) NOT NULL, -- 'SMS', 'EMAIL', 'IN_APP'
+    channel VARCHAR(64) NOT NULL, -- 'OFFICER_ALERT', 'SUPERVISOR_ALERT', 'APEX_ESCALATION', 'COMPLAINANT_OTP', 'COMPLAINANT_UPDATE', 'CAPA_NOTICE'
+    case_id VARCHAR(64),
+    subject VARCHAR(255) NOT NULL,
+    body TEXT NOT NULL,
+    status VARCHAR(32) NOT NULL DEFAULT 'DISPATCHED',
+    is_read BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_outbox_channel ON notification_outbox(channel);
+CREATE INDEX IF NOT EXISTS idx_outbox_case_id ON notification_outbox(case_id);
+CREATE INDEX IF NOT EXISTS idx_outbox_recipient ON notification_outbox(recipient);
+CREATE INDEX IF NOT EXISTS idx_outbox_is_read ON notification_outbox(is_read);

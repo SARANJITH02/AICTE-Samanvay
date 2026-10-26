@@ -112,7 +112,7 @@ public class AuthController {
         userRepository.save(user);
 
         // 7. Issue short-lived access token + refresh token
-        String accessToken = jwtTokenProvider.generateAccessToken(user.getUsername(), user.getRole(), user.getBureau(), user.getRegion());
+        String accessToken = jwtTokenProvider.generateAccessToken(user.getUsername(), user.getRole(), user.getBureau(), user.getRegion(), user.getInstitutionPid());
         String refreshToken = jwtTokenProvider.generateRefreshToken(user.getUsername());
 
         log.info("[AUTH] Successful enterprise login for user '{}' [{}]", username, user.getRole());
@@ -126,6 +126,7 @@ public class AuthController {
                 .role(user.getRole())
                 .bureau(user.getBureau())
                 .region(user.getRegion())
+                .institutionPid(user.getInstitutionPid())
                 .expiresInMs(jwtTokenProvider.getAccessTokenExpirationMs())
                 .totpRequired(false)
                 .build());
@@ -145,7 +146,7 @@ public class AuthController {
         }
 
         User user = userOpt.get();
-        String newAccessToken = jwtTokenProvider.generateAccessToken(user.getUsername(), user.getRole(), user.getBureau(), user.getRegion());
+        String newAccessToken = jwtTokenProvider.generateAccessToken(user.getUsername(), user.getRole(), user.getBureau(), user.getRegion(), user.getInstitutionPid());
 
         return ResponseEntity.ok(Map.of(
                 "token", newAccessToken,

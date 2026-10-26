@@ -43,6 +43,9 @@ public class User {
     @Column(name = "region", length = 64, nullable = false)
     private String region; // "All Regions", "Southern", "Northern", "Eastern", "Western", "Central"
 
+    @Column(name = "institution_pid", length = 64)
+    private String institutionPid; // Non-null for ROLE_INSTITUTION_NODAL accounts
+
     @Column(name = "totp_secret", length = 64)
     private String totpSecret;
 

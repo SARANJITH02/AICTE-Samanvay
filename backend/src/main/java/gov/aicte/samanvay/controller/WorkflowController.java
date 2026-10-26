@@ -2,6 +2,7 @@ package gov.aicte.samanvay.controller;
 
 import gov.aicte.samanvay.model.*;
 import gov.aicte.samanvay.repository.*;
+import gov.aicte.samanvay.service.AuditService;
 import gov.aicte.samanvay.service.CaseWorkflowService;
 import gov.aicte.samanvay.service.ConsistencyCheckService;
 import gov.aicte.samanvay.service.ContradictionDetectionService;
@@ -24,6 +25,8 @@ public class WorkflowController {
     private final SharedEvidencePackageRepository sharedEvidencePackageRepository;
     private final InstitutionalCorrectiveActionRepository correctiveActionRepository;
     private final PolicyVersionRepository policyVersionRepository;
+    private final AuditService auditService;
+    private final ComplaintRepository complaintRepository;
 
     // 1. Subtasks
     @GetMapping("/subtasks/{parentCaseId}")
@@ -114,6 +117,116 @@ public class WorkflowController {
     @GetMapping("/capa/{institutionPid}")
     public ResponseEntity<List<InstitutionalCorrectiveAction>> getCorrectiveActions(@PathVariable String institutionPid) {
         return ResponseEntity.ok(correctiveActionRepository.findByInstitutionPidOrderByTargetDateAsc(institutionPid));
+    }
+
+    @PostMapping("/capa")
+    public ResponseEntity<InstitutionalCorrectiveAction> submitCorrectiveAction(
+            @RequestBody Map<String, String> body,
+            org.springframework.security.core.Authentication auth) {
+        String instPid = body.get("institutionPid");
+        String caseId = body.get("caseId");
+        String undertaking = body.get("undertakingText");
+        String targetDateStr = body.get("targetDate");
+        String evidenceRef = body.get("evidenceReference");
+        String officerId = (auth != null) ? auth.getName() : "INSTITUTION_NODAL";
+
+        java.time.OffsetDateTime targetDate = (targetDateStr != null && !targetDateStr.isBlank())
+                ? java.time.OffsetDateTime.parse(targetDateStr)
+                : java.time.OffsetDateTime.now().plusDays(30);
+
+        InstitutionalCorrectiveAction capa = InstitutionalCorrectiveAction.builder()
+                .institutionPid(instPid)
+                .caseId(caseId)
+                .undertakingText(undertaking)
+                .targetDate(targetDate)
+                .status("PENDING_VERIFICATION")
+                .evidenceReference(evidenceRef)
+                .build();
+
+        InstitutionalCorrectiveAction saved = correctiveActionRepository.save(capa);
+
+        if (caseId != null && !caseId.isBlank()) {
+            auditService.appendAuditLog(
+                    caseId,
+                    officerId,
+                    "CAPA_SUBMITTED_BY_INSTITUTION",
+                    "Institution submitted formal CAPA undertaking: " + undertaking,
+                    String.format("{\"capaId\":%d,\"targetDate\":\"%s\"}", saved.getId(), targetDate)
+            );
+        }
+
+        return ResponseEntity.ok(saved);
+    }
+
+    @PostMapping("/capa/{id}/verify")
+    public ResponseEntity<InstitutionalCorrectiveAction> verifyCorrectiveAction(
+            @PathVariable Long id,
+            @RequestBody Map<String, String> body,
+            org.springframework.security.core.Authentication auth) {
+        InstitutionalCorrectiveAction capa = correctiveActionRepository.findById(id)
+                .orElseThrow(() -> new java.util.NoSuchElementException("CAPA record not found: " + id));
+
+        String newStatus = body.getOrDefault("status", "COMPLIED");
+        String remarks = body.get("remarks");
+        String officerId = (auth != null) ? auth.getName() : "OFFICER";
+
+        capa.setStatus(newStatus);
+        capa.setVerifiedByOfficer(officerId);
+        if ("COMPLIED".equalsIgnoreCase(newStatus)) {
+            capa.setComplianceDate(java.time.OffsetDateTime.now());
+        }
+        InstitutionalCorrectiveAction saved = correctiveActionRepository.save(capa);
+
+        if (capa.getCaseId() != null && !capa.getCaseId().isBlank()) {
+            auditService.appendAuditLog(
+                    capa.getCaseId(),
+                    officerId,
+                    "CAPA_VERIFIED_BY_BUREAU",
+                    String.format("Bureau verified institutional CAPA as %s. %s", newStatus, remarks != null ? remarks : ""),
+                    String.format("{\"capaId\":%d,\"status\":\"%s\"}", id, newStatus)
+            );
+        }
+
+        return ResponseEntity.ok(saved);
+    }
+
+    @PostMapping("/evidence/register")
+    public ResponseEntity<SharedEvidencePackage> registerEvidencePackage(
+            @RequestBody Map<String, String> body,
+            org.springframework.security.core.Authentication auth) {
+        String instPid = body.get("institutionPid");
+        String caseId = body.get("caseId");
+        String docType = body.getOrDefault("documentType", "COMPLIANCE_PROOF");
+        String title = body.get("title");
+        String fileHash = body.get("fileHash");
+        String bureau = body.getOrDefault("verifiedByBureau", "PGRC");
+        String docUrl = body.get("documentUrl");
+        String officerId = (auth != null) ? auth.getName() : "OFFICER";
+
+        SharedEvidencePackage pkg = SharedEvidencePackage.builder()
+                .institutionPid(instPid)
+                .caseId(caseId)
+                .documentType(docType)
+                .title(title)
+                .fileHash(fileHash != null ? fileHash : "SHA256-SYNTHETIC-HASH")
+                .verifiedByBureau(bureau)
+                .documentUrl(docUrl)
+                .sourceProvenance("Registered via Samanvay Verified Evidence Vault")
+                .build();
+
+        SharedEvidencePackage saved = sharedEvidencePackageRepository.save(pkg);
+
+        if (caseId != null && !caseId.isBlank()) {
+            auditService.appendAuditLog(
+                    caseId,
+                    officerId,
+                    "EVIDENCE_PACKAGE_REGISTERED",
+                    "New reusable verified evidence package registered: " + title,
+                    String.format("{\"evidenceId\":%d,\"hash\":\"%s\"}", saved.getId(), saved.getFileHash())
+            );
+        }
+
+        return ResponseEntity.ok(saved);
     }
 
     // 9. Policy Versions

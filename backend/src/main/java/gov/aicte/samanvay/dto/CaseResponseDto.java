@@ -16,6 +16,7 @@ public class CaseResponseDto {
     private String institutionName;
     private BureauType sourceBureau;
     private String complainantType;
+    private String complainantMobile;
     private String category;
     private String subject;
     private String complaintText;

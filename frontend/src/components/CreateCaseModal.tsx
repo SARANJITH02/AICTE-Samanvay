@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
-import { X, Plus, Shield, CheckCircle2, Building2, User, FileText, AlertTriangle } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, Plus, Shield, CheckCircle2, Building2, User, FileText, AlertTriangle, UploadCloud, Link as LinkIcon, Sparkles } from 'lucide-react';
 import { api, sanitizePii } from '../services/api';
 import { INITIAL_INSTITUTIONS } from '../services/seedData';
-import { BureauType } from '../types';
+import { BureauType, DuplicateWarning } from '../types';
 
 interface CreateCaseModalProps {
   isOpen: boolean;
@@ -21,6 +21,48 @@ export const CreateCaseModal: React.FC<CreateCaseModalProps> = ({ isOpen, onClos
   const [subject, setSubject] = useState('');
   const [rawText, setRawText] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [duplicateWarnings, setDuplicateWarnings] = useState<DuplicateWarning[]>([]);
+  const [isCheckingDuplicates, setIsCheckingDuplicates] = useState(false);
+  const [isExtractingOcr, setIsExtractingOcr] = useState(false);
+  const [ocrFileName, setOcrFileName] = useState<string | null>(null);
+  const [ocrHash, setOcrHash] = useState<string | null>(null);
+
+  // Debounced real-time duplicate check (400ms)
+  useEffect(() => {
+    if (rawText.trim().length < 15) {
+      setDuplicateWarnings([]);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      setIsCheckingDuplicates(true);
+      try {
+        const warnings = await api.checkDuplicateFiling(rawText, category, selectedInstPid);
+        setDuplicateWarnings(warnings);
+      } finally {
+        setIsCheckingDuplicates(false);
+      }
+    }, 400);
+
+    return () => clearTimeout(timer);
+  }, [rawText, category, selectedInstPid]);
+
+  const handleOcrUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsExtractingOcr(true);
+    try {
+      const res = await api.extractOcr(file);
+      setOcrFileName(file.name);
+      setOcrHash(res.sha256);
+      if (res.extracted_text) {
+        setRawText(prev => prev ? `${prev}\n\n[ATTACHMENT EXTRACT: ${file.name}]\n${res.extracted_text}` : res.extracted_text);
+      }
+    } finally {
+      setIsExtractingOcr(false);
+    }
+  };
 
   const CATEGORY_TO_POLICY: Record<string, string> = {
     'Fee Dispute': 'APH 2024-27 (Clause 13.4 - Fee Refund & Caution Deposit Restitution)',
@@ -254,6 +296,61 @@ export const CreateCaseModal: React.FC<CreateCaseModalProps> = ({ isOpen, onClos
               </div>
             </div>
           )}
+
+          {/* Item 14: Real-Time Duplicate Warning Banner */}
+          {duplicateWarnings.length > 0 && (
+            <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-xs space-y-2 animate-fadeIn">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-amber-300 font-bold">
+                  <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
+                  <span>{duplicateWarnings.length} Potential Cross-Bureau Duplicate{duplicateWarnings.length > 1 ? 's' : ''} Detected</span>
+                </div>
+                <span className="text-[10px] font-mono text-amber-400 font-bold bg-amber-500/20 px-2 py-0.5 rounded">
+                  Max Match: {duplicateWarnings[0].similarityPercent}%
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-300 leading-relaxed">
+                Review existing active cases to avoid redundant registrations across coordinating bureaus:
+              </p>
+              <div className="space-y-1.5 max-h-32 overflow-y-auto pr-1">
+                {duplicateWarnings.map(dw => (
+                  <div key={dw.caseId} className="p-2 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-between text-[11px]">
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono font-bold text-amber-400">{dw.caseId}</span>
+                      <span className="text-slate-300 font-medium truncate max-w-[200px]">{dw.title}</span>
+                      <span className="text-[9px] px-1.5 py-0.2 rounded bg-slate-800 text-slate-400">{dw.bureau}</span>
+                    </div>
+                    <span className="font-mono font-bold text-emerald-400 shrink-0">{dw.similarityPercent}% match</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Item 17: OCR Attachment Upload */}
+          <div className="p-3 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
+                <UploadCloud className="w-3.5 h-3.5 text-blue-400" />
+                Upload Grievance Attachment / Evidence (PDF / Image)
+              </label>
+              {isExtractingOcr && (
+                <span className="text-[10px] text-blue-400 font-mono animate-pulse">Running Air-Gapped OCR...</span>
+              )}
+            </div>
+            <input
+              type="file"
+              accept=".pdf,.png,.jpg,.jpeg"
+              onChange={handleOcrUpload}
+              className="text-xs text-slate-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-slate-800 file:text-white hover:file:bg-slate-700 cursor-pointer"
+            />
+            {ocrFileName && (
+              <div className="flex items-center gap-2 text-[10px] font-mono text-emerald-400 pt-1">
+                <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                <span>Extracted: {ocrFileName} &bull; SHA-256: {ocrHash?.slice(0, 16)}...</span>
+              </div>
+            )}
+          </div>
           </div>
 
           {/* Sticky Action Footer */}

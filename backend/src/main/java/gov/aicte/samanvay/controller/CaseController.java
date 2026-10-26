@@ -17,6 +17,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
+import gov.aicte.samanvay.dto.DuplicateWarningDto;
+import gov.aicte.samanvay.dto.PrecedentDto;
 import java.util.Map;
 
 @RestController
@@ -36,19 +38,34 @@ public class CaseController {
 
         String userRole = "ROLE_APEX_ADMIN";
         String userRegion = null;
+        String userInstitutionPid = null;
 
         if (auth != null && auth.getDetails() instanceof Claims claims) {
             userRole = claims.get("role", String.class);
             userRegion = claims.get("region", String.class);
+            userInstitutionPid = claims.get("institutionPid", String.class);
         }
 
-        List<CaseResponseDto> cases = caseService.getCases(userRole, userRegion, region, bureau, status, search);
+        List<CaseResponseDto> cases = caseService.getCases(userRole, userRegion, userInstitutionPid, region, bureau, status, search);
         return ResponseEntity.ok(cases);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<CaseResponseDto> getCaseById(@PathVariable String id) {
         return ResponseEntity.ok(caseService.getCaseById(id));
+    }
+
+    @GetMapping("/{id}/precedents")
+    public ResponseEntity<List<PrecedentDto>> getPrecedentsForCase(@PathVariable String id) {
+        return ResponseEntity.ok(caseService.getPrecedentsForCase(id));
+    }
+
+    @PostMapping("/check-duplicate")
+    public ResponseEntity<List<DuplicateWarningDto>> checkDuplicatesAtFiling(@RequestBody Map<String, String> body) {
+        String text = body.get("text");
+        String category = body.get("category");
+        String institutionPid = body.get("institutionPid");
+        return ResponseEntity.ok(caseService.checkDuplicatesAtFiling(text, category, institutionPid));
     }
 
     @PostMapping

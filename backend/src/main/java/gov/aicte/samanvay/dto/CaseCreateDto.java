@@ -18,6 +18,7 @@ public class CaseCreateDto {
     private BureauType sourceBureau;
     @NotBlank
     private String complainantType;
+    private String complainantMobile;
     @NotBlank
     private String category;
     @NotBlank

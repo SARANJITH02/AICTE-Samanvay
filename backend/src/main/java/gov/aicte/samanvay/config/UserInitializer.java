@@ -42,13 +42,18 @@ public class UserInitializer implements CommandLineRunner {
                 "ROLE_REGIONAL_OFFICER", "REGIONAL_OFFICE", "Northern", "JBSWY3DPEHPK3PXT");
 
         seedUserIfNotExists("nodal.inst", "Nodal@Samanvay2026!", "Prof. S. Ranganathan (Registrar & Nodal Officer)",
-                "ROLE_INSTITUTION_NODAL", "NODAL_INSTITUTION", "Southern", "JBSWY3DPEHPK3PXU");
+                "ROLE_INSTITUTION_NODAL", "NODAL_INSTITUTION", "Southern", "JBSWY3DPEHPK3PXU", "INST-SOU-001");
 
         log.info("[AUTH] Verified standard air-gapped officer accounts and BCrypt security credentials.");
     }
 
     private void seedUserIfNotExists(String username, String rawPassword, String fullName,
                                      String role, String bureau, String region, String defaultTotpSecret) {
+        seedUserIfNotExists(username, rawPassword, fullName, role, bureau, region, defaultTotpSecret, null);
+    }
+
+    private void seedUserIfNotExists(String username, String rawPassword, String fullName,
+                                     String role, String bureau, String region, String defaultTotpSecret, String institutionPid) {
         if (userRepository.findByUsername(username).isEmpty()) {
             User user = User.builder()
                     .username(username)
@@ -57,6 +62,7 @@ public class UserInitializer implements CommandLineRunner {
                     .role(role)
                     .bureau(bureau)
                     .region(region)
+                    .institutionPid(institutionPid)
                     .totpSecret(defaultTotpSecret)
                     .totpEnabled(true)
                     .failedAttempts(0)

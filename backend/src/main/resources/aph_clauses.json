@@ -1,0 +1,90 @@
+[
+  {
+    "clauseNumber": "Clause 6.1",
+    "chapter": "Chapter VI",
+    "handbookVersion": "APH 2024-27",
+    "title": "Establishment of Grievance Redressal Committee (GRC) and Ombudsman",
+    "description": "Every AICTE-approved institution must establish a collegiate Student Grievance Redressal Committee (SGRC) headed by the Principal/Director with elected student representatives, and appoint an independent University Ombudsman. Failure to resolve grievances within 15 working days shall invite immediate AICTE bureau scrutiny.",
+    "keywords": ["grievance", "sgrc", "ombudsman", "committee", "appeal", "redressal", "delay", "resolution"]
+  },
+  {
+    "clauseNumber": "Clause 6.3",
+    "chapter": "Chapter VI",
+    "handbookVersion": "APH 2024-27",
+    "title": "Prohibition of Original Certificate Withholding & Mandatory Tuition Fee Refund",
+    "description": "No institution shall withhold or retain original educational certificates, degrees, marksheets, transfer certificates (TC), or migration certificates under any pretext, including non-payment of disputed dues. In case of admission withdrawal prior to prescribed cut-off, full refund of tuition fee after deducting maximum processing fee of Rs. 1,000/- must be disbursed within 7 working days.",
+    "keywords": ["certificate", "withholding", "original documents", "fee refund", "cancellation", "transfer certificate", "marksheets", "caution deposit"]
+  },
+  {
+    "clauseNumber": "Clause 7.1",
+    "chapter": "Chapter VII",
+    "handbookVersion": "APH 2024-27",
+    "title": "Strict Prohibition of Capitation Fee & Commercial Donations",
+    "description": "Institutions are strictly prohibited from demanding, collecting, or accepting any capitation fee, development donation, building fund, or unauthorized levies directly or through third-party intermediaries. Violations constitute a cognizable offense under the Prohibition of Unfair Practices in Technical Educational Institutions Regulations.",
+    "keywords": ["capitation fee", "donation", "unauthorized fee", "bribe", "admission fee", "commercialization", "unfair practice"]
+  },
+  {
+    "clauseNumber": "Clause 7.2",
+    "chapter": "Chapter VII",
+    "handbookVersion": "APH 2024-27",
+    "title": "Transparency in Fee Structure & Regulatory Fee Committee Compliance",
+    "description": "Institutions must publish full breakups of tuition, examination, hostel, and laboratory fees on their official website before admissions commence. No fees higher than the ceiling approved by the State Fee Regulatory Committee shall be charged.",
+    "keywords": ["fee structure", "hidden fee", "hostel fee", "exam fee", "state fee regulatory committee", "overcharging"]
+  },
+  {
+    "clauseNumber": "Clause 8.1",
+    "chapter": "Chapter VIII",
+    "handbookVersion": "APH 2024-27",
+    "title": "Zero Tolerance Against Ragging & Mandatory Anti-Ragging Cell",
+    "description": "Technical institutions shall enforce zero tolerance towards ragging in campus, hostels, transport, or digital platforms pursuant to AICTE Regulations 2009. Mandatory registration of FIR within 24 hours of reported ragging is obligatory for institution heads.",
+    "keywords": ["ragging", "harassment", "hostel", "fir", "anti-ragging", "mental cruelty", "discipline"]
+  },
+  {
+    "clauseNumber": "Clause 8.2",
+    "chapter": "Chapter VIII",
+    "handbookVersion": "APH 2024-27",
+    "title": "Campus Safety Norms, CCTV Coverage, and Anonymous Complaint Drop-Boxes",
+    "description": "Institutions must install functional CCTV systems covering common areas and hostel gates, maintain anonymous complaint drop-boxes cleared weekly by the SGRC, and provide round-the-clock emergency helpline contact details.",
+    "keywords": ["cctv", "safety", "anonymous complaint", "hostel gates", "security", "emergency helpline"]
+  },
+  {
+    "clauseNumber": "Clause 3.4",
+    "chapter": "Chapter III",
+    "handbookVersion": "APH 2024-27",
+    "title": "Faculty Cadre Ratio and Mandatory 7th CPC Salary Disbursement",
+    "description": "Institutions must maintain the statutory faculty-to-student cadre ratio of 1:15 (or 1:20 in non-engineering technical programs) with Cadre Proportion of 1 Professor : 2 Associate Professors : 6 Assistant Professors. Salaries must be disbursed through bank transfer adhering to 7th Central Pay Commission scales.",
+    "keywords": ["faculty", "salary", "cadre ratio", "7th cpc", "delayed payment", "ad-hoc", "service conditions", "qualification"]
+  },
+  {
+    "clauseNumber": "Clause 4.1",
+    "chapter": "Chapter IV",
+    "handbookVersion": "APH 2024-27",
+    "title": "Mandatory Infrastructure Norms, Computing Facilities, and Laboratory Standards",
+    "description": "Institutions must possess clear unencumbered land, barrier-free access for Divyangjan, licensed engineering software, high-speed broadband, and fully equipped laboratories matching AICTE model curriculum requirements.",
+    "keywords": ["infrastructure", "laboratory", "computing", "software", "divyangjan", "library", "broadband"]
+  },
+  {
+    "clauseNumber": "Clause 13.4",
+    "chapter": "Chapter XIII",
+    "handbookVersion": "APH 2024-27",
+    "title": "Inter-Bureau Synchronization & Multi-Agency Regulatory Inquiry",
+    "description": "Where an institution faces concurrent inquiries across PGRC, Regulation Bureau, or Regional Offices, a harmonized Joint Inquiry protocol must be initiated under AICTE Samanvay. No conflicting unilateral directives shall be issued without inter-bureau clearance.",
+    "keywords": ["inter-bureau", "joint inquiry", "harmonization", "concurrent", "conflicting directives", "regional office", "pgrc"]
+  },
+  {
+    "clauseNumber": "Clause 14.1",
+    "chapter": "Chapter XIV",
+    "handbookVersion": "APH 2024-27",
+    "title": "Regulatory Penalties: Intake Reduction, Approval Suspension, and Zero Admission",
+    "description": "For substantiated non-compliance with AICTE regulations or failure to implement SGRC orders, the Council may impose penalties including: (a) 50% reduction in approved intake, (b) suspension of approval for 1 academic year, (c) placement in 'No Admission' status, or (d) forfeiture of performance guarantee.",
+    "keywords": ["penalty", "intake reduction", "no admission", "suspension", "punitive", "forfeiture", "approval withdrawal"]
+  },
+  {
+    "clauseNumber": "Clause 14.2",
+    "chapter": "Chapter XIV",
+    "handbookVersion": "APH 2024-27",
+    "title": "Disgorgement of Unlawful Collections & Blacklisting of Defaulter Societies",
+    "description": "The Council may order the disgorgement and direct refund of any unlawfully collected funds or capitation levies with 12% annual interest. Chronic institutional defaulters and governing trust members may be recommended for national blacklisting.",
+    "keywords": ["disgorgement", "refund with interest", "blacklisting", "unlawful collections", "society", "trust", "penal action"]
+  }
+]

@@ -1,7 +1,12 @@
 import React, { useState } from 'react';
 import { Persona } from '../types';
 import { INITIAL_PERSONAS } from '../services/seedData';
-import { Shield, Bell, ChevronDown, Plus, Upload, Globe, CheckCircle2, AlertTriangle, AlertCircle, RefreshCw, KeyRound } from 'lucide-react';
+import { SupportedLanguage, t } from '../services/i18n';
+import {
+  Shield, Bell, ChevronDown, Plus, Upload, Globe, CheckCircle2,
+  AlertTriangle, AlertCircle, RefreshCw, KeyRound, SearchCheck, Send,
+  Languages, Type
+} from 'lucide-react';
 
 interface HeaderProps {
   currentPersona: Persona;
@@ -15,6 +20,12 @@ interface HeaderProps {
   onOpenLoginModal: () => void;
   onNavigateTab: (tab: string) => void;
   onRefreshData: () => void;
+  language?: SupportedLanguage;
+  onSelectLanguage?: (lang: SupportedLanguage) => void;
+  fontSize?: 'sm' | 'md' | 'lg';
+  onSelectFontSize?: (size: 'sm' | 'md' | 'lg') => void;
+  onOpenTrackingPortal?: () => void;
+  onOpenOutboxSimulator?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -28,7 +39,13 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenBulkImport,
   onOpenLoginModal,
   onNavigateTab,
-  onRefreshData
+  onRefreshData,
+  language = 'en',
+  onSelectLanguage = () => {},
+  fontSize = 'md',
+  onSelectFontSize = () => {},
+  onOpenTrackingPortal = () => {},
+  onOpenOutboxSimulator = () => {}
 }) => {
   const [showPersonaMenu, setShowPersonaMenu] = useState(false);
   const [showNotificationMenu, setShowNotificationMenu] = useState(false);
@@ -85,6 +102,62 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Global Controls & Actions */}
         <div className="flex flex-wrap items-center gap-2.5 w-full md:w-auto justify-end">
           
+          {/* Language Switcher (Item 16) */}
+          <div className="flex items-center bg-slate-800/90 border border-slate-700 rounded-lg p-0.5 text-xs text-slate-200" role="group" aria-label="Language Selector">
+            <button
+              onClick={() => onSelectLanguage('en')}
+              className={`px-2 py-1 rounded text-xs font-semibold transition-colors ${language === 'en' ? 'bg-amber-500 text-slate-950 font-bold' : 'text-slate-400 hover:text-white'}`}
+              title="English"
+              aria-pressed={language === 'en'}
+            >
+              EN
+            </button>
+            <button
+              onClick={() => onSelectLanguage('hi')}
+              className={`px-2 py-1 rounded text-xs font-semibold transition-colors ${language === 'hi' ? 'bg-amber-500 text-slate-950 font-bold' : 'text-slate-400 hover:text-white'}`}
+              title="हिन्दी (Hindi)"
+              aria-pressed={language === 'hi'}
+            >
+              हिन्दी
+            </button>
+            <button
+              onClick={() => onSelectLanguage('ta')}
+              className={`px-2 py-1 rounded text-xs font-semibold transition-colors ${language === 'ta' ? 'bg-amber-500 text-slate-950 font-bold' : 'text-slate-400 hover:text-white'}`}
+              title="தமிழ் (Tamil)"
+              aria-pressed={language === 'ta'}
+            >
+              தமிழ்
+            </button>
+          </div>
+
+          {/* Text-Size Accessibility Toggle (Item 21 - GIGW Standard) */}
+          <div className="flex items-center bg-slate-800/90 border border-slate-700 rounded-lg p-0.5 text-xs text-slate-200" role="group" aria-label="Text Size Accessibility">
+            <button
+              onClick={() => onSelectFontSize('sm')}
+              className={`px-1.5 py-0.5 rounded text-[11px] font-bold ${fontSize === 'sm' ? 'bg-slate-700 text-amber-400' : 'text-slate-400 hover:text-white'}`}
+              title="Standard Font Size"
+              aria-label="Decrease font size"
+            >
+              A-
+            </button>
+            <button
+              onClick={() => onSelectFontSize('md')}
+              className={`px-1.5 py-0.5 rounded text-xs font-bold ${fontSize === 'md' ? 'bg-slate-700 text-amber-400' : 'text-slate-400 hover:text-white'}`}
+              title="Default Font Size"
+              aria-label="Default font size"
+            >
+              A
+            </button>
+            <button
+              onClick={() => onSelectFontSize('lg')}
+              className={`px-1.5 py-0.5 rounded text-sm font-bold ${fontSize === 'lg' ? 'bg-slate-700 text-amber-400' : 'text-slate-400 hover:text-white'}`}
+              title="Enlarged Font Size (Accessible)"
+              aria-label="Increase font size"
+            >
+              A+
+            </button>
+          </div>
+
           {/* Region Selector */}
           <div className="flex items-center bg-slate-800/90 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200">
             <Globe className="w-3.5 h-3.5 text-amber-400 mr-2 shrink-0" />
@@ -92,6 +165,7 @@ export const Header: React.FC<HeaderProps> = ({
               value={selectedRegion}
               onChange={(e) => onSelectRegion(e.target.value)}
               className="bg-transparent border-none text-slate-200 focus:outline-none cursor-pointer pr-1 text-xs"
+              aria-label="Filter cases by regional jurisdiction"
             >
               {regions.map((reg) => (
                 <option key={reg} value={reg} className="bg-slate-900 text-slate-200">
@@ -101,11 +175,23 @@ export const Header: React.FC<HeaderProps> = ({
             </select>
           </div>
 
+          {/* Public Complainant Tracking Portal Trigger (Item 13) */}
+          <button
+            onClick={onOpenTrackingPortal}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-semibold transition-all shadow-sm"
+            title="Public Complainant Case Tracking & OTP Verification Portal"
+            aria-label="Open Public Complainant Tracking Portal"
+          >
+            <SearchCheck className="w-3.5 h-3.5 text-emerald-400" />
+            <span className="hidden sm:inline">Track Grievance</span>
+          </button>
+
           {/* Officer Enterprise Login Trigger */}
           <button
             onClick={onOpenLoginModal}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-300 border border-blue-500/30 text-xs font-semibold transition-all shadow-sm"
             title="Real enterprise login using BCrypt credentials, short-lived JWT, and RFC 6238 TOTP MFA"
+            aria-label="Officer Enterprise Login with MFA"
           >
             <KeyRound className="w-3.5 h-3.5 text-blue-400" />
             <span className="hidden sm:inline">Officer Login (MFA)</span>
@@ -227,6 +313,22 @@ export const Header: React.FC<HeaderProps> = ({
                       No critical SLA breaches or uncoordinated overlaps detected.
                     </div>
                   )}
+                </div>
+
+                <div className="pt-2 border-t border-slate-800">
+                  <button
+                    onClick={() => {
+                      setShowNotificationMenu(false);
+                      onOpenOutboxSimulator();
+                    }}
+                    className="w-full text-left p-2 rounded-lg bg-slate-800/80 hover:bg-slate-800 border border-slate-700 text-xs text-cyan-300 font-semibold flex items-center justify-between transition-colors"
+                  >
+                    <span className="flex items-center gap-1.5">
+                      <Send className="w-3.5 h-3.5 text-cyan-400" />
+                      <span>SMS / Email Dispatch Simulator</span>
+                    </span>
+                    <span className="text-[10px] bg-cyan-500/20 px-1.5 py-0.5 rounded text-cyan-300 font-mono">Air-Gapped</span>
+                  </button>
                 </div>
               </div>
             )}

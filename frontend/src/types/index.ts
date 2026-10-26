@@ -6,7 +6,8 @@ export type UserRole =
   | 'ROLE_PGRC_OFFICER'
   | 'ROLE_REGULATION_OFFICER'
   | 'ROLE_REGIONAL_OFFICER'
-  | 'ROLE_APEX_ADMIN';
+  | 'ROLE_APEX_ADMIN'
+  | 'ROLE_INSTITUTION_NODAL';
 
 export interface Persona {
   id: string;
@@ -111,6 +112,7 @@ export interface Complaint {
   institutionName: string;
   sourceBureau: BureauType;
   complainantType: string;
+  complainantMobile?: string;
   category: string;
   subject: string;
   complaintText: string;
@@ -301,5 +303,84 @@ export interface SeasonalForecastResponse {
   forecastPeriod: string;
   monthlyData: SeasonalForecastMonth[];
   operationalRecommendation: string;
+}
+
+export interface DuplicateWarning {
+  caseId: string;
+  title: string;
+  bureau: BureauType;
+  status: ComplaintStatus;
+  institutionName: string;
+  similarityPercent: number;
+  warning: string;
+}
+
+export interface Precedent {
+  caseId: string;
+  title: string;
+  category: string;
+  institutionName: string;
+  resolutionNotes: string;
+  daysTaken: number;
+  reliefAmountInr: number;
+  appliedClauses: string;
+  similarityPercent: number;
+  precedentBadge?: string;
+}
+
+export interface LlmDraftResponse {
+  draftType: string;
+  content: string;
+  citedClauses: string[];
+  engine: string;
+  isFallback: boolean;
+  watermark: string;
+  generatedAt: string;
+}
+
+export interface NotificationOutboxMessage {
+  id: number;
+  recipient: string;
+  type: 'SMS' | 'EMAIL' | 'IN_APP';
+  channel: string;
+  caseId?: string;
+  subject: string;
+  body: string;
+  status: string;
+  isRead: boolean;
+  createdAt: string;
+}
+
+export interface TimelineMilestone {
+  step: string;
+  title: string;
+  date: string;
+  status: 'COMPLETED' | 'IN_PROGRESS' | 'PENDING';
+  description: string;
+}
+
+export interface PublicCaseTimeline {
+  caseId: string;
+  institutionName: string;
+  category: string;
+  subject: string;
+  status: string;
+  receivedDate: string;
+  slaDeadline: string;
+  slaDaysRemaining: number;
+  slaStatus: string;
+  publicSummary: string;
+  milestones: TimelineMilestone[];
+}
+
+export interface OcrExtractionResult {
+  filename: string;
+  sha256: string;
+  extracted_text: string;
+  sanitized_text: string;
+  char_count: number;
+  redaction_count: number;
+  redaction_details: Record<string, number>;
+  ocr_engine: string;
 }
 

@@ -36,6 +36,15 @@ export const INITIAL_PERSONAS: Persona[] = [
     defaultRegion: 'All Regions',
     badgeColor: 'bg-amber-500/10 text-amber-400 border-amber-500/30',
     avatarText: 'AS'
+  },
+  {
+    id: 'institution_nodal',
+    name: 'Dr. C. R. Raman (Registrar & Nodal)',
+    role: 'ROLE_INSTITUTION_NODAL',
+    bureau: 'INSTITUTION_NODAL',
+    defaultRegion: 'Southern',
+    badgeColor: 'bg-rose-500/10 text-rose-400 border-rose-500/30',
+    avatarText: 'CR'
   }
 ];
 
