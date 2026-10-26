@@ -1,0 +1,43 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /
+
+spring:
+  application:
+    name: aicte-samanvay-backend
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://postgres:5432/aicte_samanvay}
+    username: ${SPRING_DATASOURCE_USERNAME:aicte_admin}
+    password: ${SPRING_DATASOURCE_PASSWORD:SamanvaySecure2026!}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      idle-timeout: 300000
+      connection-timeout: 20000
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+        jdbc:
+          batch_size: 25
+
+# Air-Gapped AI Engine URL
+ai-service:
+  base-url: ${AI_SERVICE_URL:http://ai-engine:8000}
+
+# Security JWT configuration
+app:
+  jwt:
+    secret: ${JWT_SECRET:404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970}
+    expiration-ms: 86400000 # 24 hours
+
+# Regional SLA engine config
+sla:
+  cron: "0 0 * * * *" # Hourly evaluation
+  warning-threshold-hours: 72 # Amber warning if within 72 hours
