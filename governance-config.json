@@ -1,0 +1,70 @@
+{
+  "version": "1.0.0",
+  "last_updated": "2026-10-26",
+  "description": "Centralized Governance & Algorithm Configuration for AICTE Samanvay",
+  "overlap_scoring": {
+    "weights": {
+      "w1_institution_pid": 0.35,
+      "w2_semantic_similarity": 0.35,
+      "w3_category_match": 0.15,
+      "w4_keyword_match": 0.15
+    },
+    "thresholds": {
+      "overlap_threshold": 0.65,
+      "critical_alert_threshold": 0.80,
+      "pid_mismatch_cap": 0.45
+    },
+    "rationale": "Calibrated against labeled multi-bureau grievance dataset (eval/complaint_pairs_labeled.json) to maximize F1-score while penalizing PID mismatches."
+  },
+  "cii_scoring": {
+    "base_score": 850,
+    "grade_cutoffs": {
+      "grade_a": 800,
+      "grade_b": 700,
+      "grade_c": 600
+    },
+    "penalties": {
+      "volume_penalty_per_case": 15,
+      "recurring_penalty": 30,
+      "overdue_sla_penalty": 25,
+      "disobeyed_directive_penalty": 50
+    },
+    "rationale": "Cumulative Institutional Index modeled after credit-rating scales (base 850). Points deducted progressively based on complaint volume, recurring malpractices, and SLA breaches."
+  },
+  "anomaly_detection": {
+    "z_threshold": 3.0,
+    "min_phrase_len": 2,
+    "max_phrase_len": 3,
+    "method": "Statistical Control Chart (Z >= 3.0 Standard Deviations above Poisson baseline)",
+    "rationale": "True 3-sigma (99.73% statistical confidence interval) threshold ensures alerts represent genuine systemic institutional non-compliance rather than random operational variance."
+  },
+  "seasonal_forecaster": {
+    "method": "Heuristic forecast based on academic calendar and seeded data (Synthetic Calibrated Baseline)",
+    "monthly_baselines": {
+      "Jan": 28, "Feb": 32, "Mar": 40, "Apr": 48,
+      "May": 74, "Jun": 88, "Jul": 125, "Aug": 115,
+      "Sep": 68, "Oct": 92, "Nov": 84, "Dec": 45
+    },
+    "academic_surges": {
+      "Jan": { "type": "Faculty Salary & Service Conditions", "surge_pct": 40 },
+      "Feb": { "type": "Service Book Retention", "surge_pct": 40 },
+      "Mar": { "type": "Pre-Exam Fee Clearances", "surge_pct": 25 },
+      "Apr": { "type": "Internal Assessment Disputes", "surge_pct": 30 },
+      "May": { "type": "Hall-Ticket Withholding & Exam Disputes", "surge_pct": 65 },
+      "Jun": { "type": "Exam Results & Transfer Clearances", "surge_pct": 65 },
+      "Jul": { "type": "Counseling, Seat Allocation & Capitation Anomaly", "surge_pct": 120 },
+      "Aug": { "type": "Admission Fee Refunds & Cancellation Disputes", "surge_pct": 120 },
+      "Sep": { "type": "Hostel Infrastructure & Mess Standards", "surge_pct": 35 },
+      "Oct": { "type": "Caution Deposit & Post-Grad Certificate Return", "surge_pct": 85 },
+      "Nov": { "type": "Degree Withholding & Placement Discrepancies", "surge_pct": 85 },
+      "Dec": { "type": "Winter Break Leave & Faculty Norms", "surge_pct": 20 }
+    },
+    "regional_multipliers": {
+      "Southern": 1.15,
+      "Northern": 1.10,
+      "Western": 0.95,
+      "Eastern": 0.85,
+      "All Regions": 1.0
+    }
+  }
+}

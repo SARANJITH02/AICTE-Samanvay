@@ -47,11 +47,11 @@ export const RootCauseAnalyticsCard: React.FC<RootCauseAnalyticsCardProps> = ({ 
             <h3 className="text-sm sm:text-base font-bold text-white flex items-center gap-2">
               Regional Root-Cause &amp; Systemic Violation Anomaly Detector
               <span className="text-[10px] px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 font-mono">
-                3&sigma; NLP Anomaly Model
+                Statistical Control Chart (Z &ge; 3.0)
               </span>
             </h3>
             <p className="text-xs text-slate-400">
-              Deterministic n-gram frequency extraction &amp; statistical deviation detector filtering institutional malpractices
+              Poisson rate baseline &amp; statistical process control chart detecting systemic institutional non-compliance
             </p>
           </div>
         </div>

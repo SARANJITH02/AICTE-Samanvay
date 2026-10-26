@@ -63,11 +63,11 @@ export const SeasonalForecastChart: React.FC<SeasonalForecastChartProps> = ({ se
             <h3 className="text-sm sm:text-base font-bold text-white flex items-center gap-2">
               Seasonal Intake &amp; Influx Predictor
               <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-800 text-amber-300 border border-amber-500/30 font-mono">
-                90-Day Heuristic Forecast
+                Heuristic forecast based on academic calendar and seeded data
               </span>
             </h3>
             <p className="text-xs text-slate-400">
-              Correlated with national academic calendar (Admission, Exam Cycles, Graduation &amp; Fee Refund Deadlines)
+              Synthetic calibrated baseline modeled on academic calendar milestones (Admissions, Exams, and Fee Refund Deadlines)
             </p>
           </div>
         </div>

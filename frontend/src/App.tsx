@@ -12,6 +12,7 @@ import { CreateCaseModal } from './components/CreateCaseModal';
 import { RegionalRiskHeatmapCard } from './components/RegionalRiskHeatmapCard';
 import { RootCauseAnalyticsCard } from './components/RootCauseAnalyticsCard';
 import { SeasonalForecastChart } from './components/SeasonalForecastChart';
+import { ModelEvaluationCard } from './components/ModelEvaluationCard';
 import { api } from './services/api';
 import { INITIAL_PERSONAS } from './services/seedData';
 import { Complaint, CaseOverlap, StatsSummary, GraphData, Persona, OverlapStatus, ComplaintStatus, Institution } from './types';
@@ -371,10 +372,15 @@ export const App: React.FC = () => {
               />
             </div>
 
-            {/* Dual Analytics Grid: 3-Sigma Root Causes & 90-Day Seasonal Predictor */}
+            {/* Dual Analytics Grid: Statistical Root Causes & Seasonal Predictor */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-1">
               <RootCauseAnalyticsCard selectedRegion={selectedRegion} />
               <SeasonalForecastChart selectedRegion={selectedRegion} />
+            </div>
+
+            {/* AI Overlap Engine Model Evaluation Card */}
+            <div className="pt-2">
+              <ModelEvaluationCard />
             </div>
           </div>
         )}

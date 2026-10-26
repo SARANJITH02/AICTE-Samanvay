@@ -98,7 +98,7 @@ public class AiClientService {
             log.warn("[AI-Client] FastAPI calculate-overlap unreachable: {}. Using native air-gapped hybrid formula.", e.getMessage());
         }
 
-        // Air-gapped internal calculation
+        // Air-gapped internal calculation (aligned with governance-config.json)
         double pidScore = (pidA != null && pidA.equalsIgnoreCase(pidB)) ? 1.0 : 0.0;
         double catScore = (catA != null && catA.equalsIgnoreCase(catB)) ? 1.0 : 0.0;
 
@@ -111,15 +111,19 @@ public class AiClientService {
         union.addAll(setB);
         double kwScore = union.isEmpty() ? 0.0 : (double) intersect.size() / union.size();
 
-        // Semantic estimate
+        // Semantic estimate proxy
         double semanticScore = (pidScore * 0.4) + (catScore * 0.3) + (kwScore * 0.3);
 
-        double total = (0.35 * pidScore) + (0.25 * catScore) + (0.25 * semanticScore) + (0.15 * kwScore);
+        // Calibrated weights: w1(PID)=0.35, w2(Semantic)=0.35, w3(Category)=0.15, w4(Keyword)=0.15
+        double total = (0.35 * pidScore) + (0.35 * semanticScore) + (0.15 * catScore) + (0.15 * kwScore);
+        if (pidScore == 0.0) {
+            total = Math.min(total, 0.45);
+        }
         total = Math.round(total * 1000.0) / 1000.0;
 
         return new OverlapCalculationResult(
                 pidScore, catScore, semanticScore, kwScore, total,
-                total >= 0.65, total >= 0.72
+                total >= 0.65, total >= 0.80
         );
     }
 

@@ -23,7 +23,7 @@ public class SlaEngineService {
     /**
      * Hourly automated SLA scanner.
      * Evaluates deadlines, auto-escalates breached cases to REGIONAL_DIRECTOR,
-     * and appends a tamper-proof audit block for regulatory compliance.
+     * and appends a tamper-evident audit block for regulatory compliance.
      */
     @Scheduled(fixedRate = 3600000) // 1 hour
     @Transactional

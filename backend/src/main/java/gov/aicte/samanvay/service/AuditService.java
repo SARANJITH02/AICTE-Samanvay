@@ -142,8 +142,9 @@ public class AuditService {
                     .build();
         }
 
-        // Enforce strict numerical integer ordering
-        logs.sort(Comparator.comparingLong(AuditLog::getSequenceNum));
+        // Enforce strict numerical integer ordering safely on a mutable copy
+        List<AuditLog> sortedLogs = new ArrayList<>(logs);
+        sortedLogs.sort(Comparator.comparingLong(AuditLog::getSequenceNum));
 
         List<AuditVerificationDto.BlockVerificationDetail> details = new ArrayList<>();
         boolean chainValid = true;
@@ -151,7 +152,7 @@ public class AuditService {
         String expectedPrevHash = GENESIS_PREV_HASH;
         String tamperAlert = null;
 
-        for (AuditLog logItem : logs) {
+        for (AuditLog logItem : sortedLogs) {
             // For Genesis (Seq 1), prev_hash must be exactly 64 zeroes
             if (logItem.getSequenceNum() == 1L) {
                 expectedPrevHash = GENESIS_PREV_HASH;

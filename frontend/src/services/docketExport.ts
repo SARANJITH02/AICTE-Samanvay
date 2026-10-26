@@ -180,7 +180,12 @@ export const generateHearingDocketPdf = async (options: DocketExportOptions): Pr
   doc.setFontSize(9);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(15, 23, 42);
-  doc.text('SECTION 4: VERIFIED CRYPTOGRAPHIC AUDIT CHAIN (TAMPER-PROOF LEDGER)', margin, y);
+  doc.text('SECTION 4: VERIFIED CRYPTOGRAPHIC AUDIT CHAIN (TAMPER-EVIDENT LEDGER)', margin, y);
+  doc.setFontSize(7);
+  doc.setFont('helvetica', 'italic');
+  doc.setTextColor(100, 116, 139);
+  doc.text('Note: Designed to support evidentiary verification; requires Section 63 BSA (Bharatiya Sakshya Adhiniyam, 2023) certificate for court use.', margin, y + 4);
+  y += 6;
   y += 3;
 
   // Audit blocks table

@@ -56,9 +56,8 @@ export const AuditChainViewer: React.FC<AuditChainViewerProps> = ({ caseId, onCl
                 {caseId}
               </span>
             </div>
-            <p className="text-xs text-slate-400">
-              Row-locked, tamper-proof audit chain guaranteeing regulatory non-repudiation from Genesis block.
-            </p>
+              Row-locked, tamper-evident audit chain guaranteeing regulatory non-repudiation from Genesis block.
+              (Designed to support evidentiary verification under Section 63 BSA 2023).
           </div>
         </div>
 

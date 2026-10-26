@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import cytoscape, { Core } from 'cytoscape';
 import { GraphData, GraphNode } from '../types';
 import { ZoomIn, ZoomOut, RotateCcw, Building2, AlertTriangle, Shield, Filter, Eye } from 'lucide-react';
+import { api } from '../services/api';
 
 interface InstitutionGraphProps {
   data: GraphData;
@@ -412,11 +413,27 @@ export const InstitutionGraph: React.FC<InstitutionGraphProps> = ({
                   </div>
 
                   {selectedNode.ciiBreakdown && (
-                    <div className="pt-1.5 border-t border-slate-800 grid grid-cols-2 gap-1 text-[10px] text-slate-400 font-mono">
-                      <div>Volume: <span className="text-red-400">-{selectedNode.ciiBreakdown.volumePenalty}</span></div>
-                      <div>Recurring: <span className="text-red-400">-{selectedNode.ciiBreakdown.recurringPenalty}</span></div>
-                      <div>Overdue: <span className="text-red-400">-{selectedNode.ciiBreakdown.overduePenalty}</span></div>
-                      <div>Disobeyed: <span className="text-red-400">-{selectedNode.ciiBreakdown.disobeyedPenalty}</span></div>
+                    <div className="pt-1.5 border-t border-slate-800 space-y-1.5">
+                      <div className="text-[10px] text-slate-400 font-bold uppercase">Itemized Penalty Breakdown (Base: 850):</div>
+                      <div className="grid grid-cols-2 gap-1 text-[10px] text-slate-400 font-mono">
+                        <div>Volume: <span className="text-red-400">-{selectedNode.ciiBreakdown.volumePenalty}</span></div>
+                        <div>Recurring: <span className="text-red-400">-{selectedNode.ciiBreakdown.recurringPenalty}</span></div>
+                        <div>Overdue: <span className="text-red-400">-{selectedNode.ciiBreakdown.overduePenalty}</span></div>
+                        <div>Disobeyed: <span className="text-red-400">-{selectedNode.ciiBreakdown.disobeyedPenalty}</span></div>
+                      </div>
+                      <button
+                        onClick={async () => {
+                          const pid = selectedNode.id.replace('inst-', '');
+                          const reason = window.prompt("Enter grounds for CII Penalty Dispute / Appeal:", "Dispute against recurring penalty calculation based on rectified compliance certificate.");
+                          if (reason) {
+                            await api.submitCiiAppeal(pid, reason);
+                            alert("CII Score Appeal lodged successfully! Recorded in Cryptographic SHA-256 Audit Chain.");
+                          }
+                        }}
+                        className="w-full mt-2 py-1 px-2 rounded bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[10px] font-bold flex items-center justify-center gap-1 transition-all"
+                      >
+                        <span>⚖️ Dispute / Appeal CII Score</span>
+                      </button>
                     </div>
                   )}
                 </div>

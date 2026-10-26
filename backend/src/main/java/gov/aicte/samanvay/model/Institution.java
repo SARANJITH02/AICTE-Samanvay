@@ -52,6 +52,12 @@ public class Institution {
     @Column(name = "cii_breakdown", columnDefinition = "TEXT")
     private String ciiBreakdown;
 
+    @Column(name = "cii_appeal_status", length = 64)
+    private String ciiAppealStatus;
+
+    @Column(name = "cii_appeal_remarks", columnDefinition = "TEXT")
+    private String ciiAppealRemarks;
+
     @Column(name = "created_at")
     private OffsetDateTime createdAt;
 

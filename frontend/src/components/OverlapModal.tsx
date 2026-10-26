@@ -686,7 +686,7 @@ export const OverlapModal: React.FC<OverlapModalProps> = ({
 
           <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-800">
             <div className="text-[11px] text-slate-400">
-              Resolving will update case statuses to <strong className="text-amber-400">JOINT_INQUIRY</strong> and record tamper-proof SHA-256 audit blocks.
+              Resolving will update case statuses to <strong className="text-amber-400">JOINT_INQUIRY</strong> and record tamper-evident SHA-256 audit blocks.
             </div>
 
             <div className="flex flex-wrap gap-2">

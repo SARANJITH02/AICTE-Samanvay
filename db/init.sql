@@ -32,6 +32,8 @@ CREATE TABLE institutions (
     cii_score INT DEFAULT 850,
     cii_grade VARCHAR(2) DEFAULT 'A',
     cii_breakdown JSONB DEFAULT '{"volumePenalty":0,"recurringPenalty":0,"overduePenalty":0,"disobeyedPenalty":0}'::jsonb,
+    cii_appeal_status VARCHAR(64) DEFAULT 'NONE',
+    cii_appeal_remarks TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
