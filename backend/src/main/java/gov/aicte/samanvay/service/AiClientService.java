@@ -17,7 +17,7 @@ import java.util.regex.Pattern;
 @Slf4j
 public class AiClientService {
 
-    @Value("${ai-service.base-url:http://ai-engine:8000}")
+    @Value("${ai-service.url:${ai-service.base-url:http://ai-engine:8000}}")
     private String aiServiceBaseUrl;
 
     private final RestTemplate restTemplate = new RestTemplate();

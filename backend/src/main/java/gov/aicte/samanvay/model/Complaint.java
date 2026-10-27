@@ -2,6 +2,8 @@ package gov.aicte.samanvay.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import java.time.OffsetDateTime;
 
 @Entity
@@ -75,6 +77,7 @@ public class Complaint {
     @Column(name = "delay_risk_score")
     private Double delayRiskScore;
 
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "delay_risk_reasons", columnDefinition = "JSONB")
     private String delayRiskReasons;
 
@@ -98,6 +101,7 @@ public class Complaint {
     @Builder.Default
     private String governingPolicyClause = "Clause 13.4";
 
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "pending_evidence_blockers", columnDefinition = "JSONB")
     private String pendingEvidenceBlockers;
 

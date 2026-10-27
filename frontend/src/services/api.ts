@@ -3,6 +3,20 @@ import { Complaint, CaseOverlap, AuditLog, AuditVerificationResult, StatsSummary
 import { INITIAL_COMPLAINTS, INITIAL_INSTITUTIONS, INITIAL_OVERLAPS, INITIAL_AUDIT_LOGS, INITIAL_INTER_BUREAU_NOTES } from './seedData';
 
 const API_BASE_URL = (import.meta as any).env?.VITE_API_BASE_URL || '/api';
+const AI_BASE_URL = (import.meta as any).env?.VITE_AI_BASE_URL || '/api/ai';
+
+export const getSeasonalForecast = (region: string) => 
+  fetch(`${AI_BASE_URL}/analytics/seasonal-forecast?region=${encodeURIComponent(region)}`);
+
+export const getRootCauses = (payload: any) => 
+  fetch(`${AI_BASE_URL}/analytics/root-causes`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+
+export const getEvalResults = () => 
+  fetch(`${AI_BASE_URL}/eval/results`);
 
 const client = axios.create({
   baseURL: API_BASE_URL,
@@ -45,13 +59,46 @@ client.interceptors.response.use(
   }
 );
 
+// Request Interceptor: Attach JWT Bearer Token to all outbound requests
+client.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('samanvay_token') || localStorage.getItem('samanvay_jwt');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
+// Native fetch wrapper with automatic JWT Bearer header injection
+export const authenticatedFetch = async (url: string, options: RequestInit = {}) => {
+  const token = localStorage.getItem('samanvay_token') || localStorage.getItem('samanvay_jwt');
+  const headers = new Headers(options.headers || {});
+  
+  if (token) {
+    headers.set('Authorization', `Bearer ${token}`);
+  }
+  if (!headers.has('Content-Type') && !(options.body instanceof FormData)) {
+    headers.set('Content-Type', 'application/json');
+  }
+
+  const response = await fetch(url, { ...options, headers });
+  if (response.status === 403 || response.status === 401) {
+    console.warn(`Authorization rejected for ${url}: status ${response.status}`);
+  }
+  return response;
+};
+
 // Set JWT token
 export const setAuthToken = (token: string | null) => {
   if (token) {
     client.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    localStorage.setItem('samanvay_token', token);
     localStorage.setItem('samanvay_jwt', token);
   } else {
     delete client.defaults.headers.common['Authorization'];
+    localStorage.removeItem('samanvay_token');
     localStorage.removeItem('samanvay_jwt');
   }
 };
@@ -1099,7 +1146,7 @@ export const api = {
   // 23. Regional Root-Cause Trend & Anomaly Detection (Feature 6)
   async getRootCauseAnalytics(region: string = 'Southern', complaintTexts?: string[]): Promise<RootCauseResponse> {
     try {
-      const aiClient = axios.create({ baseURL: 'http://localhost:8000', timeout: 3000 });
+      const aiClient = axios.create({ baseURL: AI_BASE_URL, timeout: 5000 });
       const res = await aiClient.post('/analytics/root-causes', { region, complaint_texts: complaintTexts || [] });
       if (res.data) return res.data;
     } catch {}
@@ -1154,7 +1201,7 @@ export const api = {
   // 24. Seasonal Intake & Influx Predictor (Feature 7)
   async getSeasonalForecast(region: string = 'All Regions'): Promise<SeasonalForecastResponse> {
     try {
-      const aiClient = axios.create({ baseURL: 'http://localhost:8000', timeout: 3000 });
+      const aiClient = axios.create({ baseURL: AI_BASE_URL, timeout: 5000 });
       const res = await aiClient.get('/analytics/seasonal-forecast', { params: { region } });
       if (res.data) return res.data;
     } catch {}
@@ -1191,7 +1238,7 @@ export const api = {
     } catch {}
 
     try {
-      const aiClient = axios.create({ baseURL: 'http://localhost:8000', timeout: 3000 });
+      const aiClient = axios.create({ baseURL: AI_BASE_URL, timeout: 5000 });
       const res = await aiClient.get('/eval/results');
       if (res.data) return res.data;
     } catch {}

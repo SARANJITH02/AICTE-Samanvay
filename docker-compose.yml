@@ -38,6 +38,8 @@ services:
       - TRANSFORMERS_OFFLINE=1
       - HF_HUB_OFFLINE=1
       - MODEL_PATH=paraphrase-multilingual-MiniLM-L12-v2
+    ports:
+      - "8000:8000"
     networks:
       - aicte-internal-net
     healthcheck:

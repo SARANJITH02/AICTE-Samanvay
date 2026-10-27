@@ -2,6 +2,8 @@ package gov.aicte.samanvay.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import java.time.OffsetDateTime;
 
 @Entity
@@ -36,6 +38,7 @@ public class AuditLog {
     @Column(name = "remarks", columnDefinition = "TEXT")
     private String remarks;
 
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "payload_snapshot", columnDefinition = "JSONB")
     private String payloadSnapshot;
 

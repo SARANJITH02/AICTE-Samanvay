@@ -29,6 +29,7 @@ spring:
 
 # Air-Gapped AI Engine URL
 ai-service:
+  url: ${AI_SERVICE_URL:http://ai-engine:8000}
   base-url: ${AI_SERVICE_URL:http://ai-engine:8000}
 
 # Security JWT configuration

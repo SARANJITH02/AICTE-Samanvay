@@ -49,7 +49,8 @@ public class Institution {
     @Column(name = "cii_grade", length = 2)
     private String ciiGrade;
 
-    @Column(name = "cii_breakdown", columnDefinition = "TEXT")
+    @org.hibernate.annotations.JdbcTypeCode(org.hibernate.type.SqlTypes.JSON)
+    @Column(name = "cii_breakdown", columnDefinition = "JSONB")
     private String ciiBreakdown;
 
     @Column(name = "cii_appeal_status", length = 64)
