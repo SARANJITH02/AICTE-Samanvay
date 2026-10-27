@@ -152,26 +152,6 @@ export const AuditChainViewer: React.FC<AuditChainViewerProps> = ({ caseId, onCl
             {isAnchoring ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <BookmarkCheck className="w-3.5 h-3.5" />}
             <span>Anchor Checkpoint</span>
           </button>
-
-          <button
-            onClick={handleSimulateTamper}
-            disabled={isTampering || logs.length === 0}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 font-bold text-xs transition-all disabled:opacity-50"
-            title="Demonstration Tool: injects unauthorized modification into database row to visibly trigger mathematical failure"
-          >
-            {isTampering ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <AlertTriangle className="w-3.5 h-3.5" />}
-            <span>Simulate Tamper</span>
-          </button>
-
-          <button
-            onClick={handleRepairTamper}
-            disabled={isTampering || logs.length === 0}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 font-bold text-xs transition-all disabled:opacity-50"
-            title="Restores legitimate hash chain and re-signs blocks"
-          >
-            <RefreshCw className="w-3.5 h-3.5" />
-            <span>Restore Integrity</span>
-          </button>
         </div>
       </div>
 

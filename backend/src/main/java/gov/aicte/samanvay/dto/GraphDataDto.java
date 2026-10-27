@@ -19,12 +19,16 @@ public class GraphDataDto {
     @Builder
     public static class GraphNode {
         private String id;
+        private String pid;
         private String label;
         private String type; // INSTITUTION, COMPLAINT, BUREAU, OFFICER
         private String status;
         private Double riskScore;
         private Integer caseCount;
+        private Integer activeGrievances;
         private String region;
+        private Integer ciiScore;
+        private String ciiGrade;
     }
 
     @Getter

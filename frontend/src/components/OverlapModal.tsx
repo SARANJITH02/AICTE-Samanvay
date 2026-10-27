@@ -10,6 +10,7 @@ interface OverlapModalProps {
   onClose: () => void;
   onResolve: (overlapId: number, action: OverlapStatus, leadBureau?: string, notes?: string) => Promise<void>;
   onInspectAudit: (caseId: string) => void;
+  initialIndex?: number;
 }
 
 export const OverlapModal: React.FC<OverlapModalProps> = ({
@@ -17,9 +18,10 @@ export const OverlapModal: React.FC<OverlapModalProps> = ({
   isOpen,
   onClose,
   onResolve,
-  onInspectAudit
+  onInspectAudit,
+  initialIndex = 0
 }) => {
-  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [selectedIndex, setSelectedIndex] = useState(initialIndex);
   const [leadBureau, setLeadBureau] = useState<'PGRC' | 'REGULATION_BUREAU'>('REGULATION_BUREAU');
   const [coordinationNotes, setCoordinationNotes] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -36,6 +38,12 @@ export const OverlapModal: React.FC<OverlapModalProps> = ({
   const [isNotesOpen, setIsNotesOpen] = useState(true);
   const [activeAuthorBureau, setActiveAuthorBureau] = useState<'PGRC' | 'REGULATION_BUREAU' | 'REGIONAL_OFFICE'>('PGRC');
   const [isExportingPdf, setIsExportingPdf] = useState(false);
+
+  useEffect(() => {
+    if (initialIndex !== undefined && initialIndex >= 0 && initialIndex < overlaps.length) {
+      setSelectedIndex(initialIndex);
+    }
+  }, [initialIndex, isOpen]);
 
   const currentOverlap = overlaps[selectedIndex] || overlaps[0];
 
@@ -62,6 +70,7 @@ export const OverlapModal: React.FC<OverlapModalProps> = ({
     setIsSubmitting(true);
     setPendingAction(action);
     try {
+      currentOverlap.status = action;
       await onResolve(currentOverlap.id, action, leadBureau, coordinationNotes);
       setCoordinationNotes('');
       onClose(); // Auto-close modal as soon as status is changed

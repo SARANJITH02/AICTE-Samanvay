@@ -239,8 +239,10 @@ export interface GraphNode {
   caseCount?: number;
   region?: string;
   ciiScore?: number;
-  ciiGrade?: 'A' | 'B' | 'C' | 'D';
+  ciiGrade?: 'A' | 'B' | 'C' | 'D' | string;
   ciiBreakdown?: CiiBreakdown;
+  pid?: string;
+  activeGrievances?: number;
 }
 
 export interface GraphEdge {

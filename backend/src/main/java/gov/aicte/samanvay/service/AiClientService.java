@@ -102,6 +102,10 @@ public class AiClientService {
         double pidScore = (pidA != null && pidA.equalsIgnoreCase(pidB)) ? 1.0 : 0.0;
         double catScore = (catA != null && catA.equalsIgnoreCase(catB)) ? 1.0 : 0.0;
 
+        String scriptA = detectScript(textA);
+        String scriptB = detectScript(textB);
+        boolean isCrossLingual = !scriptA.equals(scriptB) && (!scriptA.equals("latin") || !scriptB.equals("latin"));
+
         // Keyword Jaccard
         Set<String> setA = new HashSet<>(Arrays.asList(textA.toLowerCase().split("\\W+")));
         Set<String> setB = new HashSet<>(Arrays.asList(textB.toLowerCase().split("\\W+")));
@@ -111,11 +115,20 @@ public class AiClientService {
         union.addAll(setB);
         double kwScore = union.isEmpty() ? 0.0 : (double) intersect.size() / union.size();
 
-        // Semantic estimate proxy
-        double semanticScore = (pidScore * 0.4) + (catScore * 0.3) + (kwScore * 0.3);
+        // Semantic estimate proxy (elevated when PID and Category align)
+        double semanticScore = (pidScore * 0.45) + (catScore * 0.45) + (kwScore * 0.10);
+        semanticScore = Math.min(1.0, Math.max(0.0, semanticScore));
 
-        // Calibrated weights: w1(PID)=0.35, w2(Semantic)=0.35, w3(Category)=0.15, w4(Keyword)=0.15
-        double total = (0.35 * pidScore) + (0.35 * semanticScore) + (0.15 * catScore) + (0.15 * kwScore);
+        double total;
+        if (isCrossLingual) {
+            // Adaptive cross-lingual weights: w1=0.35, w2=0.40 (semantic), w3=0.25 (category), w4=0.0 (keyword)
+            kwScore = semanticScore;
+            total = (0.35 * pidScore) + (0.40 * semanticScore) + (0.25 * catScore);
+        } else {
+            // Calibrated weights: w1(PID)=0.35, w2(Semantic)=0.35, w3(Category)=0.15, w4(Keyword)=0.15
+            total = (0.35 * pidScore) + (0.35 * semanticScore) + (0.15 * catScore) + (0.15 * kwScore);
+        }
+
         if (pidScore == 0.0) {
             total = Math.min(total, 0.45);
         }
@@ -125,6 +138,18 @@ public class AiClientService {
                 pidScore, catScore, semanticScore, kwScore, total,
                 total >= 0.65, total >= 0.80
         );
+    }
+
+    private String detectScript(String text) {
+        if (text == null) return "latin";
+        int devanagari = 0, tamil = 0;
+        for (char c : text.toCharArray()) {
+            if (c >= '\u0900' && c <= '\u097F') devanagari++;
+            else if (c >= '\u0B80' && c <= '\u0BFF') tamil++;
+        }
+        if (tamil >= 3) return "tamil";
+        if (devanagari >= 3) return "devanagari";
+        return "latin";
     }
 
     public record OverlapCalculationResult(

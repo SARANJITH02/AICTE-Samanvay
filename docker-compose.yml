@@ -14,6 +14,8 @@ services:
       - pgdata:/var/lib/postgresql/data
       - ./db/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
       - ./db/seed.sql:/docker-entrypoint-initdb.d/02-seed.sql:ro
+    ports:
+      - "5432:5432"
     networks:
       - aicte-internal-net
     healthcheck:
@@ -61,6 +63,8 @@ services:
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-SamanvaySecure2026!}
       AI_SERVICE_URL: http://ai-engine:8000
       JWT_SECRET: ${JWT_SECRET:-404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970}
+    ports:
+      - "8080:8080"
     networks:
       - aicte-internal-net
     depends_on:

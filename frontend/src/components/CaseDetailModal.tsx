@@ -60,7 +60,7 @@ export const CaseDetailModal: React.FC<CaseDetailModalProps> = ({
   onUpdateStatus,
   onOpenAudit
 }) => {
-  const [activeTab, setActiveTab] = useState<'DETAILS' | 'AUDIT' | 'AI_DRAFT' | 'PRECEDENTS'>('DETAILS');
+  const [activeTab, setActiveTab] = useState<'DETAILS' | 'WORKFLOW' | 'AI_DRAFT' | 'PRECEDENTS'>('DETAILS');
   const [resolutionRemarks, setResolutionRemarks] = useState('');
   const [isUpdating, setIsUpdating] = useState(false);
   const [pendingStatus, setPendingStatus] = useState<ComplaintStatus | null>(null);
@@ -92,13 +92,26 @@ export const CaseDetailModal: React.FC<CaseDetailModalProps> = ({
   const [precedentError, setPrecedentError] = useState<string | null>(null);
   const [copiedPrecedentId, setCopiedPrecedentId] = useState<string | null>(null);
 
-  if (!isOpen || !complaint) return null;
+  // BSA 2023 Evidentiary Verification State
+  const [isVerifyingChain, setIsVerifyingChain] = useState<boolean>(false);
+  const [chainValid, setChainValid] = useState<boolean | null>(null);
 
-  const currentStatus = (complaint.status || 'RECEIVED').toUpperCase();
-  const isDisposed = currentStatus === 'DISPOSED';
-
+  // Sync state whenever complaint or isOpen changes
   React.useEffect(() => {
-    if (isDisposed && complaint) {
+    if (isOpen && complaint) {
+      setAffectedCount(complaint.affectedStudentsCount || '');
+      setReliefAmount(complaint.totalReliefAmountInr || '');
+      setResolutionRemarks('');
+      setConsistencyWarning(null);
+      setReopenError(null);
+      setChainValid(null);
+    }
+  }, [isOpen, complaint?.id]);
+
+  // QR Code generation effect - called unconditionally on every render
+  React.useEffect(() => {
+    const isDisposed = (complaint?.status || '').toUpperCase() === 'DISPOSED';
+    if (isOpen && isDisposed && complaint) {
       const disposalDate = complaint.receivedDate ? complaint.receivedDate.slice(0, 10) : '2026-10-25';
       const outcomeVerdict = complaint.resolutionNotes || 'Formal Regulatory Disposal Order & Student Relief Delivered';
       api.getAuditLogs(complaint.id).then(async (logs) => {
@@ -111,7 +124,27 @@ export const CaseDetailModal: React.FC<CaseDetailModalProps> = ({
         setQrCodeDataUrl(dataUrl);
       }).catch(() => {});
     }
-  }, [isDisposed, complaint]);
+  }, [isOpen, complaint?.id, complaint?.status]);
+
+  // Handle BSA 2023 Chain Verification
+  const handleVerifyChain = async () => {
+    if (!complaint) return;
+    setIsVerifyingChain(true);
+    try {
+      const res = await api.verifyChain(complaint.id);
+      setChainValid(res.isValid);
+    } catch {
+      setChainValid(false);
+    } finally {
+      setIsVerifyingChain(false);
+    }
+  };
+
+  // Safe Guard AFTER all React Hooks have executed
+  if (!isOpen || !complaint) return null;
+
+  const currentStatus = (complaint.status || 'RECEIVED').toUpperCase();
+  const isDisposed = currentStatus === 'DISPOSED';
 
   const handleExportDocket = async () => {
     if (!complaint) return;
@@ -286,11 +319,11 @@ export const CaseDetailModal: React.FC<CaseDetailModalProps> = ({
                   <span>Precedents</span>
                 </button>
                 <button
-                  onClick={() => setActiveTab('AUDIT')}
-                  className={`px-2.5 py-1 rounded-md font-semibold flex items-center gap-1 transition-colors ${activeTab === 'AUDIT' ? 'bg-emerald-600 text-white' : 'text-slate-400 hover:text-slate-200'}`}
+                  onClick={() => setActiveTab('WORKFLOW')}
+                  className={`px-2.5 py-1 rounded-md font-semibold flex items-center gap-1 transition-colors ${activeTab === 'WORKFLOW' ? 'bg-emerald-600 text-white' : 'text-slate-400 hover:text-slate-200'}`}
                 >
                   <Lock className="w-3 h-3" />
-                  <span>Audit Chain</span>
+                  <span>Workflow &amp; Action History</span>
                 </button>
               </div>
 
@@ -305,8 +338,44 @@ export const CaseDetailModal: React.FC<CaseDetailModalProps> = ({
 
           {/* Modal Body */}
           <div className="p-6 overflow-y-auto max-h-[calc(92vh-140px)]">
-            {activeTab === 'AUDIT' ? (
-              <AuditChainViewer caseId={complaint.id} onClose={onClose} />
+            {activeTab === 'WORKFLOW' ? (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between p-3.5 rounded-xl bg-slate-950 border border-slate-800">
+                  <div className="flex items-center gap-2.5">
+                    <ShieldCheck className="text-emerald-400 w-5 h-5 shrink-0" />
+                    <div>
+                      <h4 className="text-xs font-bold text-slate-200">BSA 2023 Sec 63 Evidentiary Ledger</h4>
+                      <p className="text-[10px] text-slate-400">Cryptographic SHA-256 chain verified against local authority checkpoint</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={handleVerifyChain}
+                    disabled={isVerifyingChain}
+                    className="px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-500/30 flex items-center gap-1.5 transition-colors"
+                  >
+                    {isVerifyingChain ? (
+                      <>
+                        <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                        <span>Verifying...</span>
+                      </>
+                    ) : chainValid === true ? (
+                      <>
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                        <span>✓ Integrity Verified</span>
+                      </>
+                    ) : chainValid === false ? (
+                      <>
+                        <AlertTriangle className="w-3.5 h-3.5 text-rose-400" />
+                        <span>Integrity Failed</span>
+                      </>
+                    ) : (
+                      <span>Validate Chain</span>
+                    )}
+                  </button>
+                </div>
+
+                <AuditChainViewer caseId={complaint.id} onClose={onClose} />
+              </div>
             ) : activeTab === 'AI_DRAFT' ? (
               <div className="space-y-6">
                 {/* AI RAG Header & Drafting Mode Switcher */}

@@ -2,12 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { X, Plus, Shield, CheckCircle2, Building2, User, FileText, AlertTriangle, UploadCloud, Link as LinkIcon, Sparkles } from 'lucide-react';
 import { api, sanitizePii } from '../services/api';
 import { INITIAL_INSTITUTIONS } from '../services/seedData';
-import { BureauType, DuplicateWarning } from '../types';
+import { BureauType, Complaint, DuplicateWarning } from '../types';
 
 interface CreateCaseModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess: () => void;
+  onSuccess: (newCase?: Complaint) => void;
 }
 
 export const CreateCaseModal: React.FC<CreateCaseModalProps> = ({ isOpen, onClose, onSuccess }) => {
@@ -91,9 +91,12 @@ export const CreateCaseModal: React.FC<CreateCaseModalProps> = ({ isOpen, onClos
     return 'PGRC';
   };
 
+  const isSubjectValid = subject.trim().length >= 6;
+  const isNarrativeValid = rawText.trim().length >= 15;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!subject.trim() || !rawText.trim()) return;
+    if (!isSubjectValid || !isNarrativeValid) return;
 
     setIsSubmitting(true);
     try {
@@ -101,7 +104,7 @@ export const CreateCaseModal: React.FC<CreateCaseModalProps> = ({ isOpen, onClos
       const seq = Math.floor(100 + Math.random() * 900);
       const generatedCleanId = `CMP-${year}-${getBureauAbbr(bureau)}-${seq}`;
 
-      await api.createCase({
+      const newCase = await api.createCase({
         id: generatedCleanId,
         institutionPid: currentInst.pid,
         institutionName: currentInst.name,
@@ -117,7 +120,7 @@ export const CreateCaseModal: React.FC<CreateCaseModalProps> = ({ isOpen, onClos
         governingPolicyClause: governingPolicy.includes('Clause') ? governingPolicy.split('(')[1].replace(')', '') : 'Clause 13.4'
       } as any);
 
-      onSuccess();
+      onSuccess(newCase);
       onClose();
     } finally {
       setIsSubmitting(false);
@@ -256,26 +259,39 @@ export const CreateCaseModal: React.FC<CreateCaseModalProps> = ({ isOpen, onClos
 
           {/* Subject */}
           <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1">Subject / Summary:</label>
+            <div className="flex items-center justify-between mb-1">
+              <label className="text-xs font-semibold text-slate-300">Subject / Summary:</label>
+              <span className={`text-[10px] font-mono ${isSubjectValid ? 'text-emerald-400 font-bold' : 'text-slate-400'}`}>
+                {subject.trim().length} / 6 min chars
+              </span>
+            </div>
             <input
               type="text"
               required
-              placeholder="Brief summary of grievance or non-compliance issue..."
+              placeholder="e.g. Fee Refund Refusal for 2025-26 Academic Year"
               value={subject}
               onChange={(e) => setSubject(e.target.value)}
               className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-amber-400"
             />
+            {subject.trim().length > 0 && !isSubjectValid && (
+              <p className="text-[10px] text-amber-400 mt-1">Minimum 6 characters required (prevent single-word summaries like &ldquo;test&rdquo;).</p>
+            )}
           </div>
 
           {/* Complaint Text */}
           <div>
             <div className="flex items-center justify-between mb-1">
               <label className="text-xs font-semibold text-slate-300">Detailed Complaint Narrative:</label>
-              {piiDetected && (
-                <span className="text-[10px] text-amber-400 font-mono flex items-center gap-1">
-                  <Shield className="w-3 h-3" /> Live PII Redactor Active
+              <div className="flex items-center gap-2">
+                {piiDetected && (
+                  <span className="text-[10px] text-amber-400 font-mono flex items-center gap-1">
+                    <Shield className="w-3 h-3" /> Live PII Redactor Active
+                  </span>
+                )}
+                <span className={`text-[10px] font-mono ${isNarrativeValid ? 'text-emerald-400 font-bold' : 'text-slate-400'}`}>
+                  {rawText.trim().length} / 15 min chars
                 </span>
-              )}
+              </div>
             </div>
             <textarea
               required
@@ -285,6 +301,12 @@ export const CreateCaseModal: React.FC<CreateCaseModalProps> = ({ isOpen, onClos
               onChange={(e) => setRawText(e.target.value)}
               className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-amber-400 font-sans"
             />
+            <p className="text-[10px] text-slate-400 mt-1">
+              Provide sufficient factual narrative for local NLP embedding and PII masking.
+            </p>
+            {rawText.trim().length > 0 && !isNarrativeValid && (
+              <p className="text-[10px] text-amber-400 mt-0.5">Need at least 15 characters to enable local air-gapped similarity indexing.</p>
+            )}
           </div>
 
           {/* Live Sanitization Preview */}
@@ -364,7 +386,7 @@ export const CreateCaseModal: React.FC<CreateCaseModalProps> = ({ isOpen, onClos
             </button>
             <button
               type="submit"
-              disabled={isSubmitting || !subject.trim() || !rawText.trim()}
+              disabled={isSubmitting || !isSubjectValid || !isNarrativeValid}
               className="flex items-center gap-2 px-5 py-2 rounded-lg bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-bold text-xs transition-all shadow-md shadow-amber-500/25 disabled:opacity-50"
             >
               <Plus className="w-4 h-4" />

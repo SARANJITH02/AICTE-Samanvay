@@ -1,9 +1,10 @@
 import React from 'react';
-import { StatsSummary } from '../types';
+import { StatsSummary, Complaint } from '../types';
 import { Files, FileText, Scale, AlertOctagon, Clock, CheckCircle, TrendingUp, Banknote, Users } from 'lucide-react';
 
 interface KpiMetricsProps {
   stats: StatsSummary;
+  cases?: Complaint[];
   onFilterBureau: (bureau: string) => void;
   onFilterStatus: (status: string) => void;
   onNavigateTab: (tab: string) => void;
@@ -11,12 +12,22 @@ interface KpiMetricsProps {
 
 export const KpiMetrics: React.FC<KpiMetricsProps> = ({
   stats,
+  cases,
   onFilterBureau,
   onFilterStatus,
   onNavigateTab
 }) => {
   const reliefLakhs = stats.totalReliefDeliveredInr ? (stats.totalReliefDeliveredInr / 100000).toFixed(1) : '42.6';
   const impactedStudents = stats.totalImpactedStudents || 142;
+
+  // Reactively derive counts from active cases state when provided
+  const totalCasesCount = cases && cases.length > 0 ? cases.length : stats.totalCases;
+  const activePgrcCount = cases && cases.length > 0
+    ? cases.filter(c => (c.sourceBureau === 'PGRC' || (c as any).source_bureau === 'PGRC') && c.status !== 'DISPOSED').length
+    : stats.activePgrc;
+  const activeRbCount = cases && cases.length > 0
+    ? cases.filter(c => (c.sourceBureau === 'REGULATION_BUREAU' || (c as any).source_bureau === 'REGULATION_BUREAU') && c.status !== 'DISPOSED').length
+    : stats.activeRegulationBureau;
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3.5 mb-6">
@@ -33,7 +44,7 @@ export const KpiMetrics: React.FC<KpiMetricsProps> = ({
           </div>
         </div>
         <div className="flex items-baseline justify-between">
-          <span className="text-2xl font-extrabold text-white">{stats.totalCases}</span>
+          <span className="text-2xl font-extrabold text-white">{totalCasesCount}</span>
           <span className="text-[11px] font-semibold text-emerald-400 flex items-center gap-0.5">
             <TrendingUp className="w-3 h-3" />
             {Math.round(stats.overallResolutionRate * 100)}% Disposed
@@ -54,7 +65,7 @@ export const KpiMetrics: React.FC<KpiMetricsProps> = ({
           </div>
         </div>
         <div className="flex items-baseline justify-between">
-          <span className="text-2xl font-extrabold text-white">{stats.activePgrc}</span>
+          <span className="text-2xl font-extrabold text-white">{activePgrcCount}</span>
           <span className="text-[11px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 font-mono font-medium">
             Student/Faculty
           </span>
@@ -74,7 +85,7 @@ export const KpiMetrics: React.FC<KpiMetricsProps> = ({
           </div>
         </div>
         <div className="flex items-baseline justify-between">
-          <span className="text-2xl font-extrabold text-white">{stats.activeRegulationBureau}</span>
+          <span className="text-2xl font-extrabold text-white">{activeRbCount}</span>
           <span className="text-[11px] px-1.5 py-0.5 rounded bg-cyan-500/10 text-cyan-400 font-mono font-medium">
             Systemic/APH
           </span>

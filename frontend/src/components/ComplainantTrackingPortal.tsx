@@ -59,6 +59,20 @@ export const ComplainantTrackingPortal: React.FC<ComplainantTrackingPortalProps>
     setError(null);
     try {
       const data = await api.verifyTrackingOtp(caseId.trim(), mobileNumber.trim(), otp.trim());
+      // Synchronize SLA countdown formula matching officer dashboard
+      try {
+        const allComplaints = await api.getCases({});
+        const caseRecord = allComplaints.find(c => c.id.toLowerCase() === caseId.trim().toLowerCase());
+        if (caseRecord) {
+          const now = new Date();
+          const deadline = new Date(caseRecord.slaDeadline);
+          const diffDays = Math.ceil((deadline.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+          const syncedRemaining = caseRecord.daysRemainingSla !== undefined ? caseRecord.daysRemainingSla : Math.max(0, diffDays);
+          const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+          data.slaDaysRemaining = syncedRemaining;
+          data.slaDeadline = `${deadline.getDate().toString().padStart(2, '0')}-${months[deadline.getMonth()]}-${deadline.getFullYear()}`;
+        }
+      } catch {}
       setTimelineData(data);
     } catch (err: any) {
       setError(err?.message || 'Invalid or expired OTP. Please try again.');

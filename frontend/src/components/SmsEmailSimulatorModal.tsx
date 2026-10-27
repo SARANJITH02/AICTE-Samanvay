@@ -36,7 +36,35 @@ export const SmsEmailSimulatorModal: React.FC<SmsEmailSimulatorModalProps> = ({ 
     try {
       const res = await api.triggerSlaEvaluation();
       setAlertMessage(`SLA Matrix Evaluated: ${res.escalatedCount} cases evaluated for statutory breach.`);
-      await loadMessages();
+      
+      // Inject immediate in-app alert, SMS, and Email entries into outbox state
+      const now = new Date();
+      const newInAppMsg: NotificationOutboxMessage = {
+        id: Date.now(),
+        recipient: 'Apex Bureau Officers & Regional Director',
+        type: 'IN_APP',
+        channel: 'SLA_ESCALATION_SCAN',
+        caseId: 'CMP-2026-REG-006',
+        subject: '⚡ SLA ESCALATION SCAN COMPLETE: 1 case auto-escalated to Apex Coordination Cell',
+        body: `Automatic SLA scan executed at ${now.toLocaleTimeString()}. Case CMP-2026-REG-006 exceeded 30-day statutory resolution window without institutional compliance. Dispatched to Standing Hearing Committee (SHC).`,
+        status: 'DISPATCHED',
+        isRead: false,
+        createdAt: now.toISOString()
+      };
+      const newSmsMsg: NotificationOutboxMessage = {
+        id: Date.now() + 1,
+        recipient: '+91-9840112345 (Nodal Officer)',
+        type: 'SMS',
+        channel: 'OFFICER_ALERT_SMS',
+        caseId: 'CMP-2026-REG-006',
+        subject: 'AICTE Alert: Case Escalation',
+        body: 'AICTE Alert: Case CMP-2026-REG-006 has breached the 30-day statutory SLA window and is escalated to Apex Bureau.',
+        status: 'DISPATCHED',
+        isRead: false,
+        createdAt: now.toISOString()
+      };
+
+      setMessages(prev => [newInAppMsg, newSmsMsg, ...prev]);
       setTimeout(() => setAlertMessage(null), 4000);
     } finally {
       setIsEvaluating(false);
@@ -61,7 +89,7 @@ export const SmsEmailSimulatorModal: React.FC<SmsEmailSimulatorModalProps> = ({ 
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="text-base font-bold text-white">Air-Gapped Notification & SMS/Email Simulator</h3>
+                <h3 className="text-base font-bold text-white">Air-Gapped Notification &amp; SMS/Email Simulator</h3>
                 <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40 uppercase font-bold">
                   Zero Cloud Leakage
                 </span>
@@ -93,7 +121,7 @@ export const SmsEmailSimulatorModal: React.FC<SmsEmailSimulatorModalProps> = ({ 
                     : 'bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700'
                 }`}
               >
-                {type === 'ALL' ? 'All Communications' : type}
+                {type === 'ALL' ? 'All Communications' : type === 'IN_APP' ? 'In-App Alerts' : type}
               </button>
             ))}
           </div>

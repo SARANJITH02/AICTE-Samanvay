@@ -5,19 +5,20 @@ import { SupportedLanguage, t } from '../services/i18n';
 import {
   Shield, Bell, ChevronDown, Plus, Upload, Globe, CheckCircle2,
   AlertTriangle, AlertCircle, RefreshCw, KeyRound, SearchCheck, Send,
-  Languages, Type, Sparkles
+  Languages, Type, Sparkles, LogOut, User
 } from 'lucide-react';
 
 interface HeaderProps {
   currentPersona: Persona;
-  onSelectPersona: (persona: Persona) => void;
+  currentUser?: any;
+  onLogout: () => void;
+  onSelectPersona?: (persona: Persona) => void;
   selectedRegion: string;
   onSelectRegion: (region: string) => void;
   breachedCount: number;
   overlapCount: number;
   onOpenCreateCase: () => void;
   onOpenBulkImport: () => void;
-  onOpenLoginModal: () => void;
   onNavigateTab: (tab: string) => void;
   onRefreshData: () => void;
   language?: SupportedLanguage;
@@ -31,6 +32,8 @@ interface HeaderProps {
 
 export const Header: React.FC<HeaderProps> = ({
   currentPersona,
+  currentUser,
+  onLogout,
   onSelectPersona,
   selectedRegion,
   onSelectRegion,
@@ -38,7 +41,6 @@ export const Header: React.FC<HeaderProps> = ({
   overlapCount,
   onOpenCreateCase,
   onOpenBulkImport,
-  onOpenLoginModal,
   onNavigateTab,
   onRefreshData,
   language = 'en',
@@ -49,7 +51,6 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenOutboxSimulator = () => {},
   onOpenGuidedDemo = () => {}
 }) => {
-  const [showPersonaMenu, setShowPersonaMenu] = useState(false);
   const [showNotificationMenu, setShowNotificationMenu] = useState(false);
 
   const regions = [
@@ -188,67 +189,30 @@ export const Header: React.FC<HeaderProps> = ({
             <span className="hidden sm:inline">Track Grievance</span>
           </button>
 
-          {/* Officer Enterprise Login Trigger */}
-          <button
-            onClick={onOpenLoginModal}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-300 border border-blue-500/30 text-xs font-semibold transition-all shadow-sm"
-            title="Real enterprise login using BCrypt credentials, short-lived JWT, and RFC 6238 TOTP MFA"
-            aria-label="Officer Enterprise Login with MFA"
-          >
-            <KeyRound className="w-3.5 h-3.5 text-blue-400" />
-            <span className="hidden sm:inline">Officer Login (MFA)</span>
-          </button>
-
-          {/* Persona Switcher Dropdown */}
-          <div className="relative">
-            <button
-              onClick={() => setShowPersonaMenu(!showPersonaMenu)}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-800/90 hover:bg-slate-750 border border-slate-700 text-xs font-medium text-slate-200 transition-all shadow-sm"
-            >
-              <span className={`w-2 h-2 rounded-full ${currentPersona.role === 'ROLE_APEX_ADMIN' ? 'bg-amber-400' : currentPersona.role === 'ROLE_PGRC_OFFICER' ? 'bg-emerald-400' : 'bg-cyan-400'}`} />
-              <span className="hidden sm:inline font-mono text-slate-400">Persona:</span>
-              <span className="text-white font-semibold">{currentPersona.name.split(' ')[0]}</span>
-              <span className={`text-[10px] px-1.5 py-0.2 rounded border ${currentPersona.badgeColor}`}>
-                {currentPersona.bureau}
+          {/* Logged In Officer Profile Display */}
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-800/90 border border-slate-700 text-xs">
+            <div className="w-6 h-6 rounded-lg bg-amber-500/20 text-amber-400 font-bold flex items-center justify-center text-[11px] shrink-0">
+              {currentUser?.fullName ? currentUser.fullName.split(' ').map((n: string) => n[0]).join('').slice(0, 2) : (currentPersona?.avatarText || 'OF')}
+            </div>
+            <div className="flex flex-col text-left">
+              <span className="text-white font-bold leading-tight truncate max-w-[140px]">
+                {currentUser?.fullName || currentPersona.name}
               </span>
-              <span className="text-[9px] px-1 py-0.2 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 font-bold hidden md:inline">
-                DEMO
+              <span className="text-[10px] text-slate-400 leading-tight">
+                {currentUser?.bureau || currentPersona.bureau} &bull; {selectedRegion}
               </span>
-              <ChevronDown className="w-3.5 h-3.5 text-slate-400 ml-0.5" />
-            </button>
-
-            {showPersonaMenu && (
-              <div className="absolute right-0 mt-2 w-72 rounded-xl bg-slate-900 border border-slate-700 shadow-2xl p-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
-                <div className="px-2.5 py-1.5 border-b border-slate-800 mb-1">
-                  <p className="text-[10px] uppercase font-bold tracking-wider text-slate-400">Switch Role Persona (RBAC)</p>
-                </div>
-                {INITIAL_PERSONAS.map((p) => (
-                  <button
-                    key={p.id}
-                    onClick={() => {
-                      onSelectPersona(p);
-                      setShowPersonaMenu(false);
-                    }}
-                    className={`w-full text-left p-2 rounded-lg flex items-start gap-2.5 transition-colors ${currentPersona.id === p.id ? 'bg-slate-800 border border-slate-700' : 'hover:bg-slate-800/50'}`}
-                  >
-                    <div className="w-7 h-7 rounded-full bg-slate-700 flex items-center justify-center font-bold text-xs text-white shrink-0 mt-0.5">
-                      {p.avatarText}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between">
-                        <p className="text-xs font-semibold text-slate-200 truncate">{p.name}</p>
-                        {currentPersona.id === p.id && <CheckCircle2 className="w-3.5 h-3.5 text-amber-400" />}
-                      </div>
-                      <p className="text-[11px] text-slate-400 flex items-center gap-1.5 mt-0.5">
-                        <span className={`px-1 py-0.2 rounded text-[9px] border ${p.badgeColor}`}>{p.bureau}</span>
-                        <span>{p.defaultRegion}</span>
-                      </p>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            )}
+            </div>
           </div>
+
+          {/* Explicit Officer Log Out Action */}
+          <button
+            onClick={onLogout}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-300 border border-red-500/30 text-xs font-semibold transition-all shadow-sm"
+            title="Sign out of officer portal session"
+          >
+            <LogOut className="w-3.5 h-3.5 text-red-400" />
+            <span className="hidden sm:inline">Log Out</span>
+          </button>
 
           {/* Notification Bell */}
           <div className="relative">
@@ -336,11 +300,12 @@ export const Header: React.FC<HeaderProps> = ({
             )}
           </div>
 
+
           {/* Guided Demo Launcher */}
           <button
             onClick={onOpenGuidedDemo}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-amber-500/20 to-orange-500/20 hover:from-amber-500/30 hover:to-orange-500/30 text-amber-300 border border-amber-500/40 text-xs font-bold transition-all shadow-sm"
-            title="Launch Interactive 7-Step SIH 2024 Guided Demo Walkthrough"
+            title="Launch Interactive 7-Step SIH Guided Demo Walkthrough"
           >
             <Sparkles className="w-3.5 h-3.5 text-amber-400" />
             <span className="hidden sm:inline">Guided Demo</span>

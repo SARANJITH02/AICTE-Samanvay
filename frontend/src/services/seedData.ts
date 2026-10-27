@@ -297,11 +297,11 @@ export const INITIAL_COMPLAINTS: Complaint[] = [
     assignedBureau: 'PGRC',
     region: 'Northern',
     receivedDate: '2026-10-16T10:00:00Z',
-    slaDeadline: '2026-11-15T18:00:00Z',
+    slaDeadline: '2026-11-16T18:00:00Z',
     isEscalated: false,
     delayRiskScore: 0.72,
     delayRiskReasons: '[{"factor": "Institution risk history", "weight": 0.4}, {"factor": "Repeated caution fee withholdings", "weight": 0.32}]',
-    daysRemainingSla: 22,
+    daysRemainingSla: 20,
     hasOverlap: true,
     governingPolicyVersion: 'APH 2024-27',
     governingPolicyClause: 'Clause 13.4',
@@ -738,6 +738,50 @@ export const INITIAL_COMPLAINTS: Complaint[] = [
     delayRiskReasons: '[{"factor": "Structural safety hazard", "weight": 0.60}, {"factor": "SLA breached by 4 days", "weight": 0.35}]',
     daysRemainingSla: -4,
     hasOverlap: true
+  },
+  {
+    id: 'CMP-2026-PGRC-TAMIL-021',
+    institutionPid: '1-20938471',
+    institutionName: 'Apex College of Engineering & Technology',
+    sourceBureau: 'PGRC',
+    complainantType: 'Student',
+    category: 'Fee Dispute',
+    subject: 'கல்லூரி காப்பீட்டுத் தொகையை திரும்பத் தரவில்லை (Caution deposit refund withheld)',
+    complaintText: 'கல்லூரி காப்பீட்டுத் தொகையை திரும்பத் தரவில்லை. பி.டெக் முடித்த பிறகும் ரூ. 35,000 காஷன் டெபாசிட் பணத்தை கணக்கு பிரிவு தராமல் அலைக்கழிக்கிறது. Contact: [PHONE_REDACTED], email: [EMAIL_REDACTED].',
+    sanitizedText: 'கல்லூரி காப்பீட்டுத் தொகையை திரும்பத் தரவில்லை. பி.டெக் முடித்த பிறகும் ரூ. 35,000 காஷன் டெபாசிட் பணத்தை கணக்கு பிரிவு தராமல் அலைக்கழிக்கிறது. Contact: [PHONE_REDACTED], email: [EMAIL_REDACTED].',
+    status: 'UNDER_SCRUTINY',
+    assignedOfficerId: 'OFF-PGRC-104',
+    assignedBureau: 'PGRC',
+    region: 'Southern',
+    receivedDate: '2026-10-24T10:00:00Z',
+    slaDeadline: '2026-11-23T18:00:00Z',
+    isEscalated: false,
+    delayRiskScore: 0.72,
+    delayRiskReasons: '[{"factor": "Cross-lingual Indic intake", "weight": 0.40}]',
+    daysRemainingSla: 28,
+    hasOverlap: true
+  },
+  {
+    id: 'CMP-2026-REG-ENG-022',
+    institutionPid: '1-20938471',
+    institutionName: 'Apex College of Engineering & Technology',
+    sourceBureau: 'REGULATION_BUREAU',
+    complainantType: 'Public',
+    category: 'Fee Dispute',
+    subject: 'Institutional fee retention audit on unauthorized caution money deposit withholding',
+    complaintText: 'Regional inspection directive: Apex College of Engineering & Technology found retaining mandatory caution deposit balances exceeding Rs. 45 Lakhs from graduating batches in direct violation of APH 2024-27 Clause 13.4.',
+    sanitizedText: 'Regional inspection directive: Apex College of Engineering & Technology found retaining mandatory caution deposit balances exceeding Rs. 45 Lakhs from graduating batches in direct violation of APH 2024-27 Clause 13.4.',
+    status: 'RECEIVED',
+    assignedOfficerId: 'OFF-REG-201',
+    assignedBureau: 'REGULATION_BUREAU',
+    region: 'Southern',
+    receivedDate: '2026-10-25T11:00:00Z',
+    slaDeadline: '2026-11-24T18:00:00Z',
+    isEscalated: false,
+    delayRiskScore: 0.65,
+    delayRiskReasons: '[{"factor": "Systemic institutional retention", "weight": 0.35}]',
+    daysRemainingSla: 29,
+    hasOverlap: true
   }
 ];
 
@@ -768,6 +812,18 @@ export const INITIAL_OVERLAPS: CaseOverlap[] = [
     coordinationNotes: 'Joint inquiry established under Regulation Bureau lead. Both faculty certificate retention complaints linked for EVC inspection.',
     resolvedBy: 'OFF-REG-205',
     resolvedAt: '2026-10-18T14:00:00Z'
+  },
+  {
+    id: 3,
+    caseA: INITIAL_COMPLAINTS[20], // CMP-2026-PGRC-TAMIL-021
+    caseB: INITIAL_COMPLAINTS[21], // CMP-2026-REG-ENG-022
+    institution: INITIAL_INSTITUTIONS[1], // Apex College
+    hybridScore: 0.86,
+    semanticScore: 0.88,
+    categoryMatchScore: 1.0,
+    keywordMatchScore: 0.88,
+    status: 'PENDING_COORDINATION',
+    coordinationNotes: 'Cross-Lingual Semantic Match (Tamil ↔ English): Student grievance filed in Tamil ("கல்லூரி காப்பீட்டுத் தொகையை திரும்பத் தரவில்லை") matches Regulation Bureau systemic audit regarding caution money retention under APH Clause 13.4. Composite Score: 86%.'
   }
 ];
 
@@ -808,6 +864,32 @@ export const INITIAL_AUDIT_LOGS: Record<string, AuditLog[]> = {
       prevHash: '8ff9640196516a893c69189712a9e245101916c626582f6f204e8a13487af8d4',
       currentHash: 'eaf87c9ce3c54ace6e02ff0aeabd322f5d91aff87e9e12000f9b77e008dc1231',
       timestamp: '2026-10-21T14:35:00Z'
+    }
+  ],
+  'CMP-2026-PGRC-TAMIL-021': [
+    {
+      id: 4,
+      caseId: 'CMP-2026-PGRC-TAMIL-021',
+      sequenceNum: 1,
+      officerId: 'SYSTEM',
+      action: 'CASE_INGESTION',
+      remarks: 'Multilingual Tamil Grievance registered via PGRC Citizen Portal with automatic Indic PII redaction.',
+      payloadSnapshot: '{"category":"Fee Dispute","language":"Tamil","source":"PGRC_PORTAL"}',
+      prevHash: '0000000000000000000000000000000000000000000000000000000000000000',
+      currentHash: 'b5a2c3d4e5f67890123456789abcdef0123456789abcdef0123456789abcdef0',
+      timestamp: '2026-10-24T10:00:00Z'
+    },
+    {
+      id: 5,
+      caseId: 'CMP-2026-PGRC-TAMIL-021',
+      sequenceNum: 2,
+      officerId: 'SYSTEM_AI_ENGINE',
+      action: 'OVERLAP_DETECTED',
+      remarks: 'Cross-Lingual Adaptive Overlap Engine detected 86% correlation with Regulation Bureau Case CMP-2026-REG-ENG-022 (Tamil ↔ English).',
+      payloadSnapshot: '{"hybrid_score":0.86,"overlap_case":"CMP-2026-REG-ENG-022","cross_lingual":true}',
+      prevHash: 'b5a2c3d4e5f67890123456789abcdef0123456789abcdef0123456789abcdef0',
+      currentHash: 'c6d7e8f9a0b123456789abcdef0123456789abcdef0123456789abcdef012345',
+      timestamp: '2026-10-25T11:15:00Z'
     }
   ]
 };
